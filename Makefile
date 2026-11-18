@@ -8,7 +8,7 @@
 
 PROGRAM := DreamDesk
 
-INCLUDES  := -Isrc -Iexternal/include
+INCLUDES  := -Isrc -Iexternal/include -Iexternal/stb
 DEFINES   := -D_CRT_SECURE_NO_WARNINGS
 GLAD_SRC  := external/glad/glad.c
 GLFW_DIR  := external/glfw
