@@ -32,6 +32,7 @@ bool App::init()
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+    glfwWindowHint(GLFW_SAMPLES, 4);   // 4 samples per pixel: anti-aliasing (as in Assignment 4)
 
     m_window = glfwCreateWindow(kWindowWidth, kWindowHeight, "Dream Developer Desk", nullptr, nullptr);
     if (!m_window) {
@@ -51,6 +52,8 @@ bool App::init()
     glfwSetKeyCallback(m_window, [](GLFWwindow* w, int k, int, int a, int m) { self(w)->onKey(k, a, m); });
     glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* w, int x, int y) { self(w)->onResize(x, y); });
     glfwGetFramebufferSize(m_window, &m_fbWidth, &m_fbHeight);
+
+    glEnable(GL_MULTISAMPLE);
     return true;
 }
 
