@@ -9,6 +9,8 @@ uniform mat4 uModel;
 uniform mat3 uNormalMatrix;   // transpose(inverse(model)): correct normals under non-uniform scaling
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform vec2 uUVOffset;
+uniform bool uRotateUV;       // portrait monitors: the content stays upright
 
 out vec3 vWorldPos;
 out vec3 vNormal;
@@ -22,6 +24,7 @@ void main()
 
     vWorldPos = world.xyz;
     vNormal = normalize(uNormalMatrix * aNormal);
-    vUV = aUV;
+    vec2 uv = uRotateUV ? vec2(1.0 - aUV.y, aUV.x) : aUV;
+    vUV = uv + uUVOffset;
     gl_Position = uProjection * uView * world;
 }

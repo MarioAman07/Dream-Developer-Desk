@@ -5,6 +5,7 @@
 #include "gfx/Texture.h"
 #include "scene/DeskScene.h"
 
+#include <cmath>
 
 bool Renderer::init()
 {
@@ -31,6 +32,7 @@ void Renderer::setFrameUniforms(const DeskScene& scene, const RenderView& v) con
     s.setMat4("uProjection", v.projection);
     s.setVec3("uViewPos", v.eye);
     s.setFloat("uTime", scene.time());
+    s.setFloat("uScreenBrightness", 1.0f);
     s.setInt("uTexture", 0);   // the sampler reads texture unit 0
 }
 
@@ -39,6 +41,12 @@ void Renderer::setMaterial(const Material& m, float time) const
     const Shader& s = m_sceneShader;
     s.setVec3("uDiffuse", m.albedo);
     s.setFloat("uAlpha", m.alpha);
+    s.setInt("uEffect", static_cast<int>(m.effect));
+    s.setBool("uRotateUV", m.rotateUV);
+    // Scrolling UVs (code on the screens). Only the fractional part is sent, so
+    // the numbers stay small (the texture repeats anyway).
+    Vec2 offset = m.uvScrollSpeed * time;
+    s.setVec2("uUVOffset", Vec2(offset.x - std::floor(offset.x), offset.y - std::floor(offset.y)));
 
     glActiveTexture(GL_TEXTURE0);
     if (m.texture) glBindTexture(GL_TEXTURE_2D, m.texture->id());

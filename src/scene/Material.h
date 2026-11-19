@@ -8,6 +8,7 @@ class Texture;
 // Special shader paths. Must match the FX_* constants in shaders/scene.vert and scene.frag.
 enum class Effect : int {
     None = 0,
+    Screen = 2,      // emissive texture (monitor content)
 };
 
 struct Material {
@@ -17,6 +18,8 @@ struct Material {
     float alpha = 1.0f;         // opacity; < 1 = drawn in the transparent pass
 
     const Texture* texture = nullptr;
+    Vec2 uvScrollSpeed{0.0f}; // UV units per second (scrolling code)
+    bool rotateUV = false;         // portrait monitors
 
     Effect effect = Effect::None;
 };

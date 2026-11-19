@@ -52,6 +52,16 @@ std::unique_ptr<Mesh> box(const Vec3& size, float uvPerMetre)
     return makeBox(size, Vec3(uvPerMetre));
 }
 
+void appendBox(std::vector<Vertex>& v, std::vector<unsigned>& idx, const Vec3& centre, const Vec3& size, const Vec2& uv)
+{
+    size_t first = v.size();
+    addBoxFaces(v, idx, size, Vec3(1.0f));
+    for (size_t i = first; i < v.size(); ++i) {
+        v[i].position += centre;
+        v[i].uv = uv;
+    }
+}
+
 std::unique_ptr<Mesh> quad()
 {
     std::vector<Vertex> v;

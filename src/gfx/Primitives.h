@@ -16,6 +16,11 @@ std::unique_ptr<Mesh> cube();
 // keeps the same scale on every face (no stretching on long or thin boxes).
 std::unique_ptr<Mesh> box(const Vec3& size, float uvPerMetre);
 
+// Adds a box (centre, size) to existing vertex and index arrays; every vertex
+// gets the same `uv`. Used to merge many boxes into ONE mesh (batching): all
+// keycaps of the keyboard are drawn with one draw call.
+void appendBox(std::vector<Vertex>& v, std::vector<unsigned>& idx, const Vec3& centre, const Vec3& size, const Vec2& uv);
+
 // Unit quad in the XY plane facing +Z, UVs 0..1 (screens, posters, sky).
 std::unique_ptr<Mesh> quad();
 

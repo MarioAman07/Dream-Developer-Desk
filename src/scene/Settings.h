@@ -3,12 +3,22 @@
 
 #include "core/Math.h"
 
+enum class ScreenContent : int { Code = 0, Terminal, Docs, Off, Count };
+inline const char* kScreenContentNames[] = {"Code editor", "Terminal", "Docs (browser)", "Off"};
+
+enum class Arrangement : int { Single = 0, Dual, Triple, Portrait, Count };
+inline const char* kArrangementNames[] = {"Single", "Dual", "Triple", "Main + portrait"};
+
 struct SceneSettings {
     // Desk lamp joints (degrees) - a 4-level hierarchy
     float lampYaw = 95.0f;       // base turns towards the keyboard
     float lampLowerArm = 35.0f;
     float lampUpperArm = 75.0f;
     float lampHead = -125.0f;
+
+    // Monitors
+    Arrangement arrangement = Arrangement::Triple;
+    ScreenContent content[3] = {ScreenContent::Code, ScreenContent::Docs, ScreenContent::Terminal};
 
     // Items that can be shown / hidden
     bool showMug = true;

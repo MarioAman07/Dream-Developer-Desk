@@ -1,4 +1,4 @@
-// SceneDesk.cpp - the desk, mouse, mug and the
+// SceneDesk.cpp - the desk, monitors, keyboard, mouse, mug and the
 // articulated desk lamp. Everything on the desk is a child of the desk-top node,
 // so moving the desk moves all of it.
 #include "scene/DeskScene.h"
@@ -39,6 +39,10 @@ void DeskScene::buildDesk()
         leg->addMesh("leg_top", m_cube, metal, {0, -0.015f, 0}, {0.06f, 0.03f, 0.7f});
     }
     m_deskTop->addMesh("desk_crossbar", m_cube, metal, {0, -0.3f, -0.3f}, {1.6f, 0.05f, 0.025f});
+
+    // Monitors (hierarchies, animated arrangements) and keyboard (all keys in one mesh).
+    m_monitors.build(m_deskTop, m_cube, m_quad, m_cylinder, m_sphere);
+    m_keyboard.build(m_deskTop, m_cube, {-0.04f, 0.003f, 0.24f});
 }
 
 void DeskScene::buildDeskItems()

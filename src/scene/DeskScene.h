@@ -3,6 +3,8 @@
 // Building is split over SceneRoom.cpp and SceneDesk.cpp.
 #pragma once
 
+#include "scene/Keyboard.h"
+#include "scene/MonitorRig.h"
 #include "scene/SceneNode.h"
 #include "scene/Settings.h"
 
@@ -23,6 +25,10 @@ public:
 
     bool init();
     void update(float dt, float time);
+
+    // Monitor presets: arrangement + what each screen shows.
+    void applyArrangementPreset(Arrangement a);
+    void nextArrangement();
 
     SceneNode& root() { return *m_root; }
     const SceneNode& root() const { return *m_root; }
@@ -62,6 +68,9 @@ private:
     const Mesh* m_cone = nullptr;
     const Mesh* m_fanRing = nullptr;
     const Mesh* m_mugHandle = nullptr;
+
+    Keyboard m_keyboard;
+    MonitorRig m_monitors;
 
     // Nodes animated or changed every frame
     SceneNode* m_deskTop = nullptr;

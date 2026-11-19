@@ -2,6 +2,9 @@
 // scene.frag - material colour (times the texture) with a simple fixed light,
 // so that the shapes are visible. Screens give off their own light.
 
+// Must match enum class Effect in src/scene/Material.h
+const int FX_SCREEN = 2;
+
 in vec3 vWorldPos;
 in vec3 vNormal;
 in vec2 vUV;
@@ -13,6 +16,8 @@ uniform vec3 uDiffuse;        // kd (also used as ka)
 uniform float uAlpha;
 uniform bool uUseTexture;
 uniform sampler2D uTexture;
+uniform int uEffect;
+uniform float uScreenBrightness;
 
 void main()
 {
@@ -20,7 +25,10 @@ void main()
     float alpha = uAlpha;
     vec3 emissive = vec3(0.0);   // light the surface gives off itself (screens, LEDs)
 
-    if (uUseTexture) {
+    if (uEffect == FX_SCREEN) {
+        emissive += texture(uTexture, vUV).rgb * uScreenBrightness;
+        kd = vec3(0.01);
+    } else if (uUseTexture) {
         vec4 t = texture(uTexture, vUV);
         kd *= t.rgb;
         alpha *= t.a;

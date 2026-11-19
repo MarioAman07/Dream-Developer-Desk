@@ -79,6 +79,10 @@ void App::onKey(int key, int action, int mods)
 
     switch (key) {
     case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(m_window, GLFW_TRUE); break;
+    case GLFW_KEY_1: case GLFW_KEY_2: case GLFW_KEY_3: case GLFW_KEY_4:
+        m_scene.applyArrangementPreset(static_cast<Arrangement>(key - GLFW_KEY_1));
+        break;
+    case GLFW_KEY_M: m_scene.nextArrangement(); break;
     default: break;
     }
 }

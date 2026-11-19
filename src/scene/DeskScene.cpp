@@ -60,6 +60,8 @@ bool DeskScene::init()
     buildDeskItems();
     buildLamp();
 
+    applyArrangementPreset(settings.arrangement);
+    m_monitors.snapTo(settings.arrangement);
     update(0.0f, 0.0f);
 
     // Count the objects with geometry (printed at start, used in the report).
@@ -70,14 +72,36 @@ bool DeskScene::init()
         if (n->mesh) ++m_objectCount;
         for (auto& c : n->children) stack.push_back(c.get());
     }
-    std::cout << "[Scene] Built " << m_objectCount << " mesh nodes\n";
+    std::cout << "[Scene] Built " << m_objectCount << " mesh nodes, " << m_keyboard.keyCount() << " keys in one keycap mesh\n";
     return true;
+}
+
+void DeskScene::applyArrangementPreset(Arrangement a)
+{
+    settings.arrangement = a;
+    using SC = ScreenContent;
+    switch (a) {
+    case Arrangement::Single:   settings.content[0] = SC::Code; break;
+    case Arrangement::Dual:     settings.content[0] = SC::Code; settings.content[1] = SC::Terminal; break;
+    case Arrangement::Triple:   settings.content[0] = SC::Code; settings.content[1] = SC::Docs; settings.content[2] = SC::Terminal; break;
+    case Arrangement::Portrait: settings.content[0] = SC::Code; settings.content[1] = SC::Docs; break;
+    default: break;
+    }
+}
+
+void DeskScene::nextArrangement()
+{
+    int next = (static_cast<int>(settings.arrangement) + 1) % static_cast<int>(Arrangement::Count);
+    applyArrangementPreset(static_cast<Arrangement>(next));
 }
 
 void DeskScene::update(float dt, float time)
 {
     m_time = time;
     applySettingsToNodes(dt);
+
+    ScreenTextures tex{texture("code"), texture("terminal"), texture("docs")};
+    m_monitors.update(dt, settings, tex);
 
     m_root->updateWorld();
 }
