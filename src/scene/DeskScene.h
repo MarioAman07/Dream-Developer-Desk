@@ -1,8 +1,10 @@
 // DeskScene.h - the whole "Dream Developer Desk" scene: builds the room and all
 // objects and animates them.
+// Building is split over SceneRoom.cpp and SceneDesk.cpp.
 #pragma once
 
 #include "scene/SceneNode.h"
+#include "scene/Settings.h"
 
 #include "core/Math.h"
 
@@ -24,10 +26,27 @@ public:
 
     SceneNode& root() { return *m_root; }
     const SceneNode& root() const { return *m_root; }
+    // Size of the desk top in metres.
+    static constexpr float kDeskWidth = 1.8f;
+    static constexpr float kDeskDepth = 0.8f;
+    static constexpr float kDeskThickness = 0.04f;
+
     float time() const { return m_time; }
 
-private:
+    SceneSettings settings;
 
+private:
+    // SceneRoom.cpp
+    void buildRoom();
+    void buildWindow(SceneNode* wall);
+    void buildCeilingLamp();
+    void buildShelfAndPoster();
+    // SceneDesk.cpp
+    void buildDesk();
+    void buildDeskItems();
+    void buildLamp();
+
+    void applySettingsToNodes(float dt);
     const Mesh* makeBox(const Vec3& size, float uvPerMetre);
     const Texture* texture(const std::string& name) const;
     void loadTextures();
@@ -43,6 +62,22 @@ private:
     const Mesh* m_cone = nullptr;
     const Mesh* m_fanRing = nullptr;
     const Mesh* m_mugHandle = nullptr;
+
+    // Nodes animated or changed every frame
+    SceneNode* m_deskTop = nullptr;
+    SceneNode* m_pendant = nullptr;
+    SceneNode* m_ceilingBulb = nullptr;
+    SceneNode* m_lampRoot = nullptr;
+    SceneNode* m_lampYaw = nullptr;
+    SceneNode* m_lampLower = nullptr;
+    SceneNode* m_lampUpper = nullptr;
+    SceneNode* m_lampHead = nullptr;
+    SceneNode* m_lampBulb = nullptr;
+    SceneNode* m_mug = nullptr;
+    SceneNode* m_shelf = nullptr;
+    SceneNode* m_poster = nullptr;
+    SceneNode* m_rug = nullptr;
+    std::vector<SceneNode*> m_walls;
 
     float m_time = 0.0f;
     int m_objectCount = 0;

@@ -55,23 +55,10 @@ bool DeskScene::init()
     m_mugHandle = m_meshes.back().get();
 
     m_root = std::make_unique<SceneNode>("world");
-    // Test scene: a textured floor and one of every primitive, side by side,
-    // as children of one parent node (the hierarchy).
-    Material floorMat;
-    floorMat.albedo = Vec3(1.0f);
-    floorMat.texture = texture("floor_wood");
-    m_root->addMesh("floor", makeBox({6.2f, 0.1f, 5.2f}, 0.45f), floorMat, {0.0f, -0.05f, 0.0f}, Vec3(1.0f));
-    SceneNode* shapes = m_root->addChild("shapes");
-    shapes->position = Vec3(0.0f, 0.5f, -1.85f);
-    const Mesh* meshes[] = {m_cube, m_sphere, m_cylinder, m_cone, m_fanRing};
-    const Vec3 colors[] = {{0.8f, 0.3f, 0.3f}, {0.3f, 0.7f, 0.4f}, {0.3f, 0.5f, 0.9f}, {0.9f, 0.8f, 0.3f}, {0.8f, 0.4f, 0.8f}};
-    for (int i = 0; i < 5; ++i) {
-        Material m;
-        m.albedo = colors[i];
-        float size = (i == 4) ? 3.0f : 0.4f;   // the torus mesh is small
-        SceneNode* n = shapes->addMesh("shape" + std::to_string(i), meshes[i], m, {-1.0f + 0.5f * i, 0.0f, 0.0f}, Vec3(size));
-        n->rotation.y = 20.0f * i;
-    }
+    buildRoom();
+    buildDesk();
+    buildDeskItems();
+    buildLamp();
 
     update(0.0f, 0.0f);
 
@@ -90,6 +77,28 @@ bool DeskScene::init()
 void DeskScene::update(float dt, float time)
 {
     m_time = time;
+    applySettingsToNodes(dt);
 
     m_root->updateWorld();
+}
+
+void DeskScene::applySettingsToNodes(float dt)
+{
+    const SceneSettings& s = settings;
+
+    // Item visibility
+    m_mug->visible = s.showMug;
+    m_lampRoot->visible = s.showLamp;
+    m_shelf->visible = s.showShelf;
+    m_poster->visible = s.showPoster;
+    m_rug->visible = s.showRug;
+
+    // Desk lamp hierarchy: each joint only rotates itself, children follow.
+    m_lampYaw->rotation.y = s.lampYaw;
+    m_lampLower->rotation.x = s.lampLowerArm;
+    m_lampUpper->rotation.x = s.lampUpperArm;
+    m_lampHead->rotation.x = s.lampHead;
+
+    // Ceiling pendant: gentle swing.
+    m_pendant->rotation.z = std::sin(m_time * 0.7f) * 1.2f;
 }
