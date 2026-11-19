@@ -21,7 +21,10 @@ struct SceneSettings {
     ScreenContent content[3] = {ScreenContent::Code, ScreenContent::Docs, ScreenContent::Terminal};
 
     // Items that can be shown / hidden
+    bool showPlant = true;
     bool showMug = true;
+    bool showPC = true;
+    bool showChair = true;
     bool showLamp = true;
     bool showShelf = true;
     bool showPoster = true;
@@ -29,5 +32,8 @@ struct SceneSettings {
 
     // Colours
     Vec3 deskTint{1.0f};
+    Vec3 chairColor{0.18f, 0.18f, 0.19f};
+    Vec3 chairAccent{0.79f, 0.23f, 0.28f};
     Vec3 wallColor{0.9f, 0.9f, 0.92f};
+    float chairYaw = -18.0f;
 };

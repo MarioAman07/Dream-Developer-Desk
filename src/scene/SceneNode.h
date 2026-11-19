@@ -46,6 +46,12 @@ public:
 
     bool visible = true;
 
+    // Cut-away walls: the node is hidden when the camera is on the outer side of
+    // the plane (point, inward normal). Lets the orbit camera look in from outside.
+    bool cutaway = false;
+    Vec3 cutawayPoint{0.0f};
+    Vec3 cutawayNormal{0.0f, 0.0f, 1.0f};
+
     std::vector<std::unique_ptr<SceneNode>> children;
 
 private:

@@ -14,10 +14,13 @@ Material makeMat(const Vec3& albedo, float spec = 0.15f, float shin = 16.0f)
     return m;
 }
 
-// A group node for one wall and the things on it.
+// A wall group: hidden when the camera is outside it (cut-away view).
 SceneNode* wallGroup(SceneNode* root, const char* name, const Vec3& point, const Vec3& inwardNormal)
 {
     SceneNode* g = root->addChild(name);
+    g->cutaway = true;
+    g->cutawayPoint = point;
+    g->cutawayNormal = inwardNormal;
     return g;
 }
 } // namespace
@@ -145,6 +148,7 @@ void DeskScene::buildShelfAndPoster()
     cactus->position = Vec3(0.45f, 0.015f, 0.0f);
     cactus->addMesh("cactus_pot", m_cylinder, makeMat({0.93f, 0.93f, 0.91f}, 0.4f, 32.0f), {0, 0.035f, 0}, {0.07f, 0.07f, 0.07f});
     Material green = makeMat({0.46f, 0.7f, 0.48f}, 0.2f, 16.0f);
+    green.effect = Effect::Sway;
     cactus->addMesh("cactus_body", m_sphere, green, {0, 0.11f, 0}, {0.05f, 0.12f, 0.05f});
     cactus->addMesh("cactus_arm", m_sphere, green, {0.025f, 0.12f, 0}, {0.025f, 0.05f, 0.025f});
 

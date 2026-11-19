@@ -17,6 +17,9 @@ bool Renderer::init()
 void Renderer::gather(const SceneNode& node, const Vec3& eye)
 {
     if (!node.visible) return;
+    // Cut-away: skip the whole wall (and its children) if the camera is on its
+    // outer side, i.e. the eye is behind the plane of the wall.
+    if (node.cutaway && dot(eye - node.cutawayPoint, node.cutawayNormal) < 0.0f) return;
 
     if (node.mesh) {
         m_opaque.push_back(&node);

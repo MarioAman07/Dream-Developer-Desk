@@ -83,6 +83,7 @@ void App::onKey(int key, int action, int mods)
         m_scene.applyArrangementPreset(static_cast<Arrangement>(key - GLFW_KEY_1));
         break;
     case GLFW_KEY_M: m_scene.nextArrangement(); break;
+    case GLFW_KEY_K: m_scene.spinChair(420.0f); break;
     default: break;
     }
 }

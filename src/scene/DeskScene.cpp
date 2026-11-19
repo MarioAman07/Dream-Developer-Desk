@@ -59,6 +59,9 @@ bool DeskScene::init()
     buildDesk();
     buildDeskItems();
     buildLamp();
+    buildChair();
+    buildPlant();
+    buildPC();
 
     applyArrangementPreset(settings.arrangement);
     m_monitors.snapTo(settings.arrangement);
@@ -111,7 +114,10 @@ void DeskScene::applySettingsToNodes(float dt)
     const SceneSettings& s = settings;
 
     // Item visibility
+    m_plant->visible = s.showPlant;
     m_mug->visible = s.showMug;
+    m_pc->visible = s.showPC;
+    m_chairRoot->visible = s.showChair;
     m_lampRoot->visible = s.showLamp;
     m_shelf->visible = s.showShelf;
     m_poster->visible = s.showPoster;
@@ -125,4 +131,14 @@ void DeskScene::applySettingsToNodes(float dt)
 
     // Ceiling pendant: gentle swing.
     m_pendant->rotation.z = std::sin(m_time * 0.7f) * 1.2f;
+
+    // PC fans spin.
+    m_fanAngle += dt * 360.0f;
+    m_fanAngle = std::fmod(m_fanAngle, 360.0f);
+    for (SceneNode* r : m_fanRotors) r->rotation.z = -m_fanAngle;
+
+    // Chair: user yaw + a spin that slows down with friction.
+    m_chairAngle += m_chairSpin * dt;
+    m_chairSpin *= std::exp(-1.5f * dt);
+    m_chairSwivel->rotation.y = s.chairYaw + m_chairAngle;
 }

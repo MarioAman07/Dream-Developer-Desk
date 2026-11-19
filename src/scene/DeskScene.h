@@ -1,6 +1,6 @@
 // DeskScene.h - the whole "Dream Developer Desk" scene: builds the room and all
 // objects and animates them.
-// Building is split over SceneRoom.cpp and SceneDesk.cpp.
+// Building is split over three files: SceneRoom.cpp, SceneDesk.cpp, SceneProps.cpp.
 #pragma once
 
 #include "scene/Keyboard.h"
@@ -29,6 +29,7 @@ public:
     // Monitor presets: arrangement + what each screen shows.
     void applyArrangementPreset(Arrangement a);
     void nextArrangement();
+    void spinChair(float impulseDegPerSec) { m_chairSpin += impulseDegPerSec; }
 
     SceneNode& root() { return *m_root; }
     const SceneNode& root() const { return *m_root; }
@@ -51,6 +52,10 @@ private:
     void buildDesk();
     void buildDeskItems();
     void buildLamp();
+    // SceneProps.cpp
+    void buildChair();
+    void buildPlant();
+    void buildPC();
 
     void applySettingsToNodes(float dt);
     const Mesh* makeBox(const Vec3& size, float uvPerMetre);
@@ -82,12 +87,22 @@ private:
     SceneNode* m_lampUpper = nullptr;
     SceneNode* m_lampHead = nullptr;
     SceneNode* m_lampBulb = nullptr;
+    SceneNode* m_chairRoot = nullptr;
+    SceneNode* m_chairSwivel = nullptr;
+    SceneNode* m_plant = nullptr;
     SceneNode* m_mug = nullptr;
+    SceneNode* m_pc = nullptr;
     SceneNode* m_shelf = nullptr;
     SceneNode* m_poster = nullptr;
     SceneNode* m_rug = nullptr;
+    std::vector<SceneNode*> m_fanRotors;
     std::vector<SceneNode*> m_walls;
+    std::vector<SceneNode*> m_chairColored;
+    std::vector<SceneNode*> m_chairAccent;
 
     float m_time = 0.0f;
+    float m_fanAngle = 0.0f;
+    float m_chairAngle = 0.0f;
+    float m_chairSpin = 0.0f;
     int m_objectCount = 0;
 };
