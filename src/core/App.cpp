@@ -54,6 +54,12 @@ bool App::init()
     glfwGetFramebufferSize(m_window, &m_fbWidth, &m_fbHeight);
 
     glEnable(GL_MULTISAMPLE);
+
+    if (!m_renderer.init()) {
+        std::cerr << "Shader loading failed - see messages above.\n";
+        return false;
+    }
+    m_scene.init();
     return true;
 }
 
@@ -87,10 +93,16 @@ void App::onResize(int width, int height)
 
 void App::renderFrame()
 {
-    // Clear the window.
-    glViewport(0, 0, m_fbWidth, m_fbHeight);
+    // Draw the scene into the window.
+    Framebuffer::bindDefault(m_fbWidth, m_fbHeight);
     glClearColor(0.07f, 0.07f, 0.085f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    RenderView main;
+    // Fixed camera: the default overview of the desk.
+    main.eye = Vec3(1.47f, 1.87f, 0.25f);
+    main.view = lookAt(main.eye, Vec3(0.05f, 0.95f, -1.85f), Vec3(0.0f, 1.0f, 0.0f));
+    main.projection = perspective(55.0f, static_cast<float>(m_fbWidth) / std::max(1, m_fbHeight), 0.03f, 60.0f);
+    m_renderer.render(m_scene, main);
 }
 
 int App::run()
@@ -110,6 +122,8 @@ int App::run()
             std::snprintf(title, sizeof(title), "Dream Developer Desk  |  %.0f FPS  (%.2f ms)", m_fps.fps, m_fps.ms);
             glfwSetWindowTitle(m_window, title);
         }
+
+        m_scene.update(dt, static_cast<float>(now));
 
         if (m_fbWidth > 0 && m_fbHeight > 0) {
             renderFrame();

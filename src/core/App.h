@@ -1,7 +1,10 @@
-// App.h - window and main loop.
+// App.h - window, main loop, input handling. Owns the scene, renderer, camera and UI.
 #pragma once
 
 #include "core/FpsCounter.h"
+#include "gfx/Framebuffer.h"
+#include "render/Renderer.h"
+#include "scene/DeskScene.h"
 
 struct GLFWwindow;
 
@@ -25,5 +28,7 @@ private:
     int m_fbWidth = 0;
     int m_fbHeight = 0;
 
+    DeskScene m_scene;
+    Renderer m_renderer;
     FpsCounter m_fps;
 };

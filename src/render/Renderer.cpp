@@ -1,0 +1,72 @@
+#include "render/Renderer.h"
+
+#include "core/Paths.h"
+#include "gfx/Mesh.h"
+#include "gfx/Texture.h"
+#include "scene/DeskScene.h"
+
+
+bool Renderer::init()
+{
+    bool ok = m_sceneShader.load(paths::shader("scene.vert"), paths::shader("scene.frag"));
+    return ok;
+}
+
+// Walks the scene tree and collects the visible nodes with a mesh.
+void Renderer::gather(const SceneNode& node, const Vec3& eye)
+{
+    if (!node.visible) return;
+
+    if (node.mesh) {
+        m_opaque.push_back(&node);
+    }
+    for (const auto& c : node.children) gather(*c, eye);
+}
+
+void Renderer::setFrameUniforms(const DeskScene& scene, const RenderView& v) const
+{
+    const Shader& s = m_sceneShader;
+    s.use();
+    s.setMat4("uView", v.view);
+    s.setMat4("uProjection", v.projection);
+    s.setVec3("uViewPos", v.eye);
+    s.setFloat("uTime", scene.time());
+    s.setInt("uTexture", 0);   // the sampler reads texture unit 0
+}
+
+void Renderer::setMaterial(const Material& m, float time) const
+{
+    const Shader& s = m_sceneShader;
+    s.setVec3("uDiffuse", m.albedo);
+    s.setFloat("uAlpha", m.alpha);
+
+    glActiveTexture(GL_TEXTURE0);
+    if (m.texture) glBindTexture(GL_TEXTURE_2D, m.texture->id());
+    else glBindTexture(GL_TEXTURE_2D, 0);
+    s.setBool("uUseTexture", m.texture != nullptr);
+}
+
+void Renderer::drawNode(const SceneNode& node, float time) const
+{
+    const Mat4& model = node.meshWorld();
+    m_sceneShader.setMat4("uModel", model);
+    m_sceneShader.setMat3("uNormalMatrix", normalMatrix(model));
+    setMaterial(node.material, time);
+    node.mesh->draw();
+}
+
+void Renderer::render(const DeskScene& scene, const RenderView& v)
+{
+    m_opaque.clear();
+    gather(scene.root(), v.eye);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+
+    // 1) Opaque objects
+    setFrameUniforms(scene, v);
+    for (const SceneNode* n : m_opaque) drawNode(*n, scene.time());
+}
