@@ -2,6 +2,7 @@
 #pragma once
 
 #include "gfx/Shader.h"
+#include "scene/Lights.h"
 
 #include <string>
 #include <vector>
@@ -29,5 +30,6 @@ private:
 
     Shader m_sceneShader;   // every object: scene.vert + scene.frag
 
+    LightSet m_lights;
     std::vector<const SceneNode*> m_opaque;
 };

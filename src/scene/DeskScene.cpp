@@ -65,6 +65,7 @@ bool DeskScene::init()
 
     applyArrangementPreset(settings.arrangement);
     m_monitors.snapTo(settings.arrangement);
+    m_env.snap(settings);
     update(0.0f, 0.0f);
 
     // Count the objects with geometry (printed at start, used in the report).
@@ -101,6 +102,7 @@ void DeskScene::nextArrangement()
 void DeskScene::update(float dt, float time)
 {
     m_time = time;
+    m_env.update(dt, settings);
     applySettingsToNodes(dt);
 
     ScreenTextures tex{texture("code"), texture("terminal"), texture("docs")};
@@ -128,9 +130,11 @@ void DeskScene::applySettingsToNodes(float dt)
     m_lampLower->rotation.x = s.lampLowerArm;
     m_lampUpper->rotation.x = s.lampUpperArm;
     m_lampHead->rotation.x = s.lampHead;
+    m_lampBulb->material.albedo = mix(Vec3(0.53f, 0.52f, 0.5f), s.lampColor * 1.5f, m_env.lamp);
 
-    // Ceiling pendant: gentle swing.
+    // Ceiling pendant: gentle swing, bulb brightness follows the light level.
     m_pendant->rotation.z = std::sin(m_time * 0.7f) * 1.2f;
+    m_ceilingBulb->material.albedo = mix(Vec3(0.48f), Vec3(1.0f, 0.94f, 0.86f) * 1.5f, m_env.ceiling);
 
     // PC fans spin.
     m_fanAngle += dt * 360.0f;
@@ -141,4 +145,40 @@ void DeskScene::applySettingsToNodes(float dt)
     m_chairAngle += m_chairSpin * dt;
     m_chairSpin *= std::exp(-1.5f * dt);
     m_chairSwivel->rotation.y = s.chairYaw + m_chairAngle;
+}
+
+void DeskScene::collectLights(LightSet& out) const
+{
+    const SceneSettings& s = settings;
+    const Environment& e = m_env;
+    out.points.clear();
+    out.spots.clear();
+
+    // Ambient light: daylight through the window + light from the ceiling lamp
+    // bounced off the walls.
+    Vec3 ambient = Vec3(0.30f, 0.31f, 0.33f);
+    ambient += Vec3(0.2f, 0.19f, 0.17f) * e.ceiling;
+    out.ambient = ambient;
+
+    // Spot 0: desk lamp, follows the lamp head through the hierarchy.
+    if (s.showLamp) {
+        SpotLight lamp;
+        lamp.position = m_lampBulb->worldPosition();
+        lamp.direction = -m_lampHead->worldAxis(1);
+        lamp.color = s.lampColor;
+        lamp.intensity = s.lampIntensity * e.lamp;
+        lamp.range = 3.5f;
+        lamp.cutoffDeg = 60.0f;
+        lamp.exponent = 8.0f;
+        out.spots.push_back(lamp);
+    }
+
+    // Point 0: ceiling pendant.
+    out.points.push_back({m_ceilingBulb->worldPosition() - Vec3(0, 0.05f, 0), {1.0f, 0.94f, 0.86f}, 1.0f * e.ceiling, 7.5f});
+    // Point 1: cold light from the main monitor onto the desk and the chair.
+    if (m_monitors.isVisible(0) && s.content[0] != ScreenContent::Off) {
+        const SceneNode* scr = m_monitors.screen(0);
+        Vec3 p = scr->worldPosition() + scr->worldAxis(2) * 0.45f - Vec3(0.0f, 0.3f, 0.0f);
+        out.points.push_back({p, Vec3(0.7f, 0.76f, 0.98f) * e.screen, 0.35f, 1.8f});
+    }
 }

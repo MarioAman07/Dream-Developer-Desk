@@ -76,6 +76,7 @@ void App::shutdown()
 void App::onKey(int key, int action, int mods)
 {
     if (action != GLFW_PRESS) return;
+    SceneSettings& s = m_scene.settings;
 
     switch (key) {
     case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(m_window, GLFW_TRUE); break;
@@ -83,6 +84,8 @@ void App::onKey(int key, int action, int mods)
         m_scene.applyArrangementPreset(static_cast<Arrangement>(key - GLFW_KEY_1));
         break;
     case GLFW_KEY_M: m_scene.nextArrangement(); break;
+    case GLFW_KEY_L: s.deskLamp = !s.deskLamp; break;
+    case GLFW_KEY_F: s.ceilingLight = !s.ceilingLight; break;
     case GLFW_KEY_K: m_scene.spinChair(420.0f); break;
     default: break;
     }

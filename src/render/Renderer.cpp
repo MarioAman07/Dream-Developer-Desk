@@ -5,6 +5,7 @@
 #include "gfx/Texture.h"
 #include "scene/DeskScene.h"
 
+#include <algorithm>
 #include <cmath>
 
 bool Renderer::init()
@@ -35,14 +36,40 @@ void Renderer::setFrameUniforms(const DeskScene& scene, const RenderView& v) con
     s.setMat4("uProjection", v.projection);
     s.setVec3("uViewPos", v.eye);
     s.setFloat("uTime", scene.time());
-    s.setFloat("uScreenBrightness", 1.0f);
+    s.setFloat("uScreenBrightness", scene.env().screen);
     s.setInt("uTexture", 0);   // the sampler reads texture unit 0
+    s.setVec3("uAmbient", m_lights.ambient);
+
+    int np = std::min<int>(static_cast<int>(m_lights.points.size()), kMaxPointLights);
+    s.setInt("uPointCount", np);
+    for (int i = 0; i < np; ++i) {
+        const PointLight& l = m_lights.points[i];
+        std::string b = "uPoints[" + std::to_string(i) + "].";
+        s.setVec3(b + "position", l.position);
+        s.setVec3(b + "color", l.color * l.intensity);
+        s.setFloat(b + "range", l.range);
+    }
+
+    int ns = std::min<int>(static_cast<int>(m_lights.spots.size()), kMaxSpotLights);
+    s.setInt("uSpotCount", ns);
+    for (int i = 0; i < ns; ++i) {
+        const SpotLight& l = m_lights.spots[i];
+        std::string b = "uSpots[" + std::to_string(i) + "].";
+        s.setVec3(b + "position", l.position);
+        s.setVec3(b + "direction", normalize(l.direction));
+        s.setVec3(b + "color", l.color * l.intensity);
+        s.setFloat(b + "range", l.range);
+        s.setFloat(b + "cutoffCos", std::cos(radians(l.cutoffDeg)));
+        s.setFloat(b + "exponent", l.exponent);
+    }
 }
 
 void Renderer::setMaterial(const Material& m, float time) const
 {
     const Shader& s = m_sceneShader;
     s.setVec3("uDiffuse", m.albedo);
+    s.setFloat("uSpecular", m.specular);
+    s.setFloat("uShininess", m.shininess);
     s.setFloat("uAlpha", m.alpha);
     s.setInt("uEffect", static_cast<int>(m.effect));
     s.setBool("uRotateUV", m.rotateUV);
@@ -68,6 +95,8 @@ void Renderer::drawNode(const SceneNode& node, float time) const
 
 void Renderer::render(const DeskScene& scene, const RenderView& v)
 {
+    scene.collectLights(m_lights);
+
     m_opaque.clear();
     gather(scene.root(), v.eye);
 

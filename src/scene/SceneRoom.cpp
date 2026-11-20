@@ -106,6 +106,7 @@ void DeskScene::buildCeilingLamp()
     shade->addMesh("pendant_shade_mesh", m_cone, shadeMat, {0, 0, 0}, {0.36f, 0.2f, 0.36f});
 
     Material bulb;
+    bulb.effect = Effect::Unlit;
     m_ceilingBulb = shade->addMesh("pendant_bulb", m_sphere, bulb, {0, -0.1f, 0}, Vec3(0.07f));
 }
 

@@ -122,5 +122,6 @@ void DeskScene::buildLamp()
     m_lampHead->addMesh("lamp_shade", m_cone, metal, {0, -0.06f, 0}, {0.13f, 0.12f, 0.13f});
 
     Material bulb;
+    bulb.effect = Effect::Unlit;
     m_lampBulb = m_lampHead->addMesh("lamp_bulb", m_sphere, bulb, {0, -0.115f, 0}, Vec3(0.045f));
 }

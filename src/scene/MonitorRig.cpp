@@ -50,6 +50,7 @@ void MonitorRig::build(SceneNode* deskTop, const Mesh* cube, const Mesh* quad, c
 
     Material led;
     led.albedo = Vec3(0.48f, 0.73f, 1.0f);
+    led.effect = Effect::Unlit;
 
     for (int i = 0; i < kCount; ++i) {
         Monitor& m = m_monitors[i];

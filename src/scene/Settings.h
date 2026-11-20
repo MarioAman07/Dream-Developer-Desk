@@ -10,6 +10,12 @@ enum class Arrangement : int { Single = 0, Dual, Triple, Portrait, Count };
 inline const char* kArrangementNames[] = {"Single", "Dual", "Triple", "Main + portrait"};
 
 struct SceneSettings {
+    // Lights
+    bool ceilingLight = true;
+    bool deskLamp = true;
+    Vec3 lampColor{1.0f, 0.9f, 0.78f};
+    float lampIntensity = 1.5f;
+
     // Desk lamp joints (degrees) - a 4-level hierarchy
     float lampYaw = 95.0f;       // base turns towards the keyboard
     float lampLowerArm = 35.0f;
@@ -19,6 +25,7 @@ struct SceneSettings {
     // Monitors
     Arrangement arrangement = Arrangement::Triple;
     ScreenContent content[3] = {ScreenContent::Code, ScreenContent::Docs, ScreenContent::Terminal};
+    float screenBrightness = 1.0f;
 
     // Items that can be shown / hidden
     bool showPlant = true;

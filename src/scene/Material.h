@@ -10,6 +10,7 @@ enum class Effect : int {
     None = 0,
     Screen = 2,      // emissive texture (monitor content)
     Sway = 4,        // vertex animation for plant leaves
+    Unlit = 5,       // plain colour, no lighting (bulbs)
 };
 
 struct Material {

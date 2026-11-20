@@ -1,9 +1,11 @@
 // DeskScene.h - the whole "Dream Developer Desk" scene: builds the room and all
-// objects and animates them.
+// objects, animates them, and gathers the lights for the renderer.
 // Building is split over three files: SceneRoom.cpp, SceneDesk.cpp, SceneProps.cpp.
 #pragma once
 
+#include "scene/Environment.h"
 #include "scene/Keyboard.h"
+#include "scene/Lights.h"
 #include "scene/MonitorRig.h"
 #include "scene/SceneNode.h"
 #include "scene/Settings.h"
@@ -25,6 +27,7 @@ public:
 
     bool init();
     void update(float dt, float time);
+    void collectLights(LightSet& out) const;
 
     // Monitor presets: arrangement + what each screen shows.
     void applyArrangementPreset(Arrangement a);
@@ -38,6 +41,7 @@ public:
     static constexpr float kDeskDepth = 0.8f;
     static constexpr float kDeskThickness = 0.04f;
 
+    const Environment& env() const { return m_env; }
     float time() const { return m_time; }
 
     SceneSettings settings;
@@ -74,6 +78,7 @@ private:
     const Mesh* m_fanRing = nullptr;
     const Mesh* m_mugHandle = nullptr;
 
+    Environment m_env;
     Keyboard m_keyboard;
     MonitorRig m_monitors;
 
