@@ -11,21 +11,24 @@
 bool Renderer::init()
 {
     bool ok = m_sceneShader.load(paths::shader("scene.vert"), paths::shader("scene.frag"));
+    ok = m_skyShader.load(paths::shader("sky.vert"), paths::shader("sky.frag")) && ok;
     return ok;
 }
 
 // Walks the scene tree and collects the visible nodes with a mesh.
-void Renderer::gather(const SceneNode& node, const Vec3& eye)
+void Renderer::gather(const SceneNode& node, const Vec3& eye, const SceneNode* sky)
 {
     if (!node.visible) return;
     // Cut-away: skip the whole wall (and its children) if the camera is on its
     // outer side, i.e. the eye is behind the plane of the wall.
     if (node.cutaway && dot(eye - node.cutawayPoint, node.cutawayNormal) < 0.0f) return;
 
-    if (node.mesh) {
+    if (&node == sky) {
+        m_skyVisible = DeskScene::isInsideRoom(eye);   // from outside the room the sky quad would float in the void
+    } else if (node.mesh) {
         m_opaque.push_back(&node);
     }
-    for (const auto& c : node.children) gather(*c, eye);
+    for (const auto& c : node.children) gather(*c, eye, sky);
 }
 
 void Renderer::setFrameUniforms(const DeskScene& scene, const RenderView& v) const
@@ -44,6 +47,8 @@ void Renderer::setFrameUniforms(const DeskScene& scene, const RenderView& v) con
     s.setFloat("uScreenBrightness", scene.env().screen);
     s.setInt("uTexture", 0);   // the sampler reads texture unit 0
     s.setVec3("uAmbient", m_lights.ambient);
+    s.setVec3("uDeskMin", m_lights.deskMin);
+    s.setVec3("uDeskMax", m_lights.deskMax);
 
     int np = std::min<int>(static_cast<int>(m_lights.points.size()), kMaxPointLights);
     s.setInt("uPointCount", np);
@@ -53,6 +58,7 @@ void Renderer::setFrameUniforms(const DeskScene& scene, const RenderView& v) con
         s.setVec3(b + "position", l.position);
         s.setVec3(b + "color", l.color * l.intensity);
         s.setFloat(b + "range", l.range);
+        s.setBool(b + "deskShadow", l.deskShadow);
     }
 
     int ns = std::min<int>(static_cast<int>(m_lights.spots.size()), kMaxSpotLights);
@@ -99,12 +105,32 @@ void Renderer::drawNode(const SceneNode& node, float time) const
     node.mesh->draw();
 }
 
+void Renderer::drawSky(const DeskScene& scene, const RenderView& v, const SceneNode& sky) const
+{
+    const Environment& e = scene.env();
+    const Shader& s = m_skyShader;
+    s.use();
+    s.setMat4("uModel", sky.meshWorld());
+    s.setMat4("uView", v.view);
+    s.setMat4("uProjection", v.projection);
+    s.setVec3("uViewPos", v.eye);
+    s.setVec3("uSunDir", e.sunDir);
+    s.setVec3("uSunColor", e.sunDiscColor);
+    s.setVec3("uZenith", e.skyZenith);
+    s.setVec3("uHorizon", e.skyHorizon);
+    s.setFloat("uStars", e.stars);
+    s.setFloat("uDay", e.day);
+    s.setFloat("uTime", scene.time());
+    sky.mesh->draw();
+}
+
 void Renderer::render(const DeskScene& scene, const RenderView& v)
 {
     scene.collectLights(m_lights);
 
     m_opaque.clear();
-    gather(scene.root(), v.eye);
+    m_skyVisible = false;
+    gather(scene.root(), v.eye, scene.skyNode());
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -115,4 +141,7 @@ void Renderer::render(const DeskScene& scene, const RenderView& v)
     // 1) Opaque objects
     setFrameUniforms(scene, v);
     for (const SceneNode* n : m_opaque) drawNode(*n, scene.time());
+
+    // 2) Sky behind the window
+    if (m_skyVisible) drawSky(scene, v, *scene.skyNode());
 }

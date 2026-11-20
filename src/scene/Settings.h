@@ -13,9 +13,13 @@ inline const char* kRgbModeNames[] = {"Rainbow wave", "Spectrum cycle", "Breathi
 constexpr int kRgbModeCount = 5;
 
 struct SceneSettings {
-    // Lights
+    // Time of day and lights
+    float timeOfDay = 15.5f;     // hours, 0..24
+    bool autoTime = false;
+    float timeSpeed = 1.0f;      // in-game hours per real second
     bool ceilingLight = true;
     bool deskLamp = true;
+    bool gamingMode = false;     // "lights out, RGB on" - the wow moment
     Vec3 lampColor{1.0f, 0.9f, 0.78f};
     float lampIntensity = 1.5f;
 

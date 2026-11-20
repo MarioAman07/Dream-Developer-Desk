@@ -17,6 +17,7 @@ public:
 private:
     bool init();
     void shutdown();
+    void processInput(float dt);
     void renderFrame();
 
     // GLFW callbacks (forwarded from static functions)

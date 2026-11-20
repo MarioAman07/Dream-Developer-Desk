@@ -137,8 +137,13 @@ void DeskScene::applySettingsToNodes(float dt)
     m_pendant->rotation.z = std::sin(m_time * 0.7f) * 1.2f;
     m_ceilingBulb->material.albedo = mix(Vec3(0.48f), Vec3(1.0f, 0.94f, 0.86f) * 1.5f, m_env.ceiling);
 
-    // PC fans spin.
-    m_fanAngle += dt * 360.0f;
+    // Roller blind (scale the sheet down from the roller)
+    float h = std::max(0.002f, m_env.blinds * 1.42f);
+    m_blind->meshScale = Vec3(0.008f, h, 1.66f);
+    m_blind->meshOffset = Vec3(0.0f, -h * 0.5f, 0.0f);
+
+    // PC fans spin faster in gaming mode.
+    m_fanAngle += dt * (360.0f + 900.0f * m_env.gaming);
     m_fanAngle = std::fmod(m_fanAngle, 360.0f);
     for (SceneNode* r : m_fanRotors) r->rotation.z = -m_fanAngle;
 
@@ -155,15 +160,32 @@ void DeskScene::collectLights(LightSet& out) const
     out.points.clear();
     out.spots.clear();
 
+    // Desk top rectangle that blocks the light (its shadow).
+    Vec3 desk = m_deskTop->worldPosition() - Vec3(0.0f, kDeskThickness * 0.5f, 0.0f);
+    out.deskMin = desk - Vec3(kDeskWidth * 0.5f, 0.0f, kDeskDepth * 0.5f);
+    out.deskMax = desk + Vec3(kDeskWidth * 0.5f, 0.0f, kDeskDepth * 0.5f);
+
     auto rgbAt = [&](float phase) { return rgb::effect(s.rgbMode, phase, m_time, s.rgbSpeed, s.rgbStatic) * e.rgb; };
 
     // Ambient light: daylight through the window + light from the ceiling lamp
-    // bounced off the walls.
-    Vec3 ambient = Vec3(0.30f, 0.31f, 0.33f);
+    // bounced off the walls + a little RGB in gaming mode.
+    Vec3 ambient = mix(Vec3(0.06f, 0.07f, 0.11f), Vec3(0.30f, 0.31f, 0.33f), e.day) * (1.0f - 0.85f * e.blinds);
     ambient += Vec3(0.2f, 0.19f, 0.17f) * e.ceiling;
+    ambient += rgbAt(0.0f) * 0.04f * e.gaming;
     out.ambient = ambient;
 
-    // Spot 0: desk lamp, follows the lamp head through the hierarchy.
+    // Spot 0: sun / moon light coming through the window (moves with the time of day).
+    SpotLight sun;
+    sun.position = Vec3(-2.9f, 2.1f, -1.1f);
+    sun.direction = -e.sunDir;
+    sun.color = e.windowLightColor;
+    sun.intensity = e.windowLightIntensity * (1.0f - 0.92f * e.blinds);
+    sun.range = 9.0f;
+    sun.cutoffDeg = 80.0f;
+    sun.exponent = 4.0f;
+    out.spots.push_back(sun);
+
+    // Spot 1: desk lamp, follows the lamp head through the hierarchy.
     if (s.showLamp) {
         SpotLight lamp;
         lamp.position = m_lampBulb->worldPosition();
@@ -177,7 +199,7 @@ void DeskScene::collectLights(LightSet& out) const
     }
 
     // Point 0: ceiling pendant.
-    out.points.push_back({m_ceilingBulb->worldPosition() - Vec3(0, 0.05f, 0), {1.0f, 0.94f, 0.86f}, 1.0f * e.ceiling, 7.5f});
+    out.points.push_back({m_ceilingBulb->worldPosition() - Vec3(0, 0.05f, 0), {1.0f, 0.94f, 0.86f}, 1.0f * e.ceiling, 7.5f, true});
 
     // Points 1-3: LED strip behind the monitors (same colour formula as the shader).
     for (float x : {-0.6f, 0.0f, 0.6f}) {

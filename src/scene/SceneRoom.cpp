@@ -1,4 +1,5 @@
-// SceneRoom.cpp - floor, walls, window, ceiling pendant, wall shelf and poster.
+// SceneRoom.cpp - floor, walls (with cut-away), window with roller blind and
+// sky, ceiling pendant, wall shelf and poster.
 // Room interior: x -3..3, y 0..3, z -2.5..2.5 (metres). The desk stands at the back wall.
 #include "scene/DeskScene.h"
 
@@ -88,6 +89,22 @@ void DeskScene::buildWindow(SceneNode* wall)
     win->addMesh("frame_right", m_cube, frame, {0, 0, w * 0.5f}, {0.14f, h, 0.06f});
     win->addMesh("frame_mid", m_cube, frame, {0, 0, 0}, {0.1f, h, 0.04f});
     win->addMesh("sill", m_cube, frame, {0.1f, -h * 0.5f - 0.02f, 0}, {0.26f, 0.03f, w + 0.2f});
+
+    // Roller blind: the roller plus a sheet whose length is animated.
+    Material roller = makeMat({0.93f, 0.93f, 0.92f}, 0.3f, 32.0f);
+    SceneNode* rollerNode = win->addMesh("blind_roller", m_cylinder, roller, {0.12f, h * 0.5f + 0.08f, 0}, {0.07f, w + 0.1f, 0.07f});
+    rollerNode->rotation.x = 90.0f;
+    m_blind = win->addChild("blind_sheet");
+    m_blind->position = Vec3(0.12f, h * 0.5f + 0.06f, 0.0f);
+    m_blind->mesh = m_cube;
+    m_blind->material = makeMat({0.9f, 0.88f, 0.84f}, 0.05f, 8.0f);
+
+    // Sky quad far outside the window (drawn with sky.vert/sky.frag).
+    m_sky = wall->addChild("sky");
+    m_sky->mesh = m_quad;
+    m_sky->position = Vec3(-6.0f, 1.5f, 0.0f);
+    m_sky->rotation.y = 90.0f;
+    m_sky->meshScale = Vec3(40.0f, 20.0f, 1.0f);
 }
 
 void DeskScene::buildCeilingLamp()

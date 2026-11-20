@@ -36,11 +36,16 @@ public:
 
     SceneNode& root() { return *m_root; }
     const SceneNode& root() const { return *m_root; }
-    // Size of the desk top in metres.
+    const SceneNode* skyNode() const { return m_sky; }
+    // Size of the desk top in metres (also used for its shadow).
     static constexpr float kDeskWidth = 1.8f;
     static constexpr float kDeskDepth = 0.8f;
     static constexpr float kDeskThickness = 0.04f;
 
+    static bool isInsideRoom(const Vec3& p)
+    {
+        return p.x > -3.0f && p.x < 3.0f && p.y > 0.0f && p.y < 3.0f && p.z > -2.5f && p.z < 2.5f;
+    }
     const Environment& env() const { return m_env; }
     float time() const { return m_time; }
 
@@ -84,6 +89,8 @@ private:
 
     // Nodes animated or changed every frame
     SceneNode* m_deskTop = nullptr;
+    SceneNode* m_sky = nullptr;
+    SceneNode* m_blind = nullptr;
     SceneNode* m_pendant = nullptr;
     SceneNode* m_ceilingBulb = nullptr;
     SceneNode* m_lampRoot = nullptr;

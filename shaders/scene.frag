@@ -25,6 +25,7 @@ struct PointLight {
     vec3 position;
     vec3 color;       // colour * intensity
     float range;
+    bool deskShadow;  // does the desk top block this light?
 };
 
 struct SpotLight {
@@ -41,6 +42,8 @@ uniform int uPointCount;
 uniform SpotLight uSpots[MAX_SPOT_LIGHTS];
 uniform int uSpotCount;
 uniform vec3 uAmbient;
+uniform vec3 uDeskMin;       // desk top rectangle: min x, plane height y, min z
+uniform vec3 uDeskMax;       // max x, plane height y, max z
 uniform vec3 uViewPos;
 uniform float uTime;
 
@@ -103,6 +106,22 @@ float attenuation(float d, float range)
     return 1.0 / (1.0 + b * d + c * d * d);
 }
 
+// Shadow of the desk top (the only shadow in the scene). The line segment from
+// the point F to the light L is P(a) = F + a * (L - F), 0 <= a <= 1 (lecture
+// "Geometry"). It crosses the plane of the desk y = h at a = (h - F.y) / (L.y - F.y).
+// If the crossing point is inside the desk rectangle, the desk is between the
+// point and the light, so the point gets no direct light from it.
+float deskShadow(vec3 F, vec3 L)
+{
+    float dy = L.y - F.y;
+    if (abs(dy) < 0.0001) return 1.0;              // segment parallel to the desk
+    float a = (uDeskMin.y - F.y) / dy;
+    if (a <= 0.0 || a >= 1.0) return 1.0;          // the plane is not between F and L
+    vec3 P = F + a * (L - F);
+    bool inside = P.x > uDeskMin.x && P.x < uDeskMax.x && P.z > uDeskMin.z && P.z < uDeskMax.z;
+    return inside ? 0.0 : 1.0;
+}
+
 // Diffuse + specular light of one source:
 // kd * I * max(N.L, 0) + ks * I * max(N.H, 0)^shininess, where H = normalize(L + V).
 vec3 phong(vec3 N, vec3 V, vec3 L, vec3 light, vec3 kd)
@@ -148,7 +167,8 @@ void main()
     for (int i = 0; i < uPointCount; ++i) {
         vec3 toLight = uPoints[i].position - vWorldPos;
         float d = length(toLight);
-        vec3 light = uPoints[i].color * attenuation(d, uPoints[i].range);
+        float shadow = uPoints[i].deskShadow ? deskShadow(vWorldPos, uPoints[i].position) : 1.0;
+        vec3 light = uPoints[i].color * attenuation(d, uPoints[i].range) * shadow;
         color += phong(N, V, toLight / d, light, kd);
     }
 
@@ -159,7 +179,7 @@ void main()
         // Spot light: 0 outside the cone, (cos angle)^exponent inside it.
         float cosAngle = dot(-L, uSpots[i].direction);
         float spot = cosAngle > uSpots[i].cutoffCos ? pow(cosAngle, uSpots[i].exponent) : 0.0;
-        vec3 light = uSpots[i].color * spot * attenuation(d, uSpots[i].range);
+        vec3 light = uSpots[i].color * spot * attenuation(d, uSpots[i].range) * deskShadow(vWorldPos, uSpots[i].position);
         color += phong(N, V, L, light, kd);
     }
 

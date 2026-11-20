@@ -23,13 +23,16 @@ public:
     void render(const DeskScene& scene, const RenderView& view);
 
 private:
-    void gather(const SceneNode& node, const Vec3& eye);
+    void gather(const SceneNode& node, const Vec3& eye, const SceneNode* sky);
     void setFrameUniforms(const DeskScene& scene, const RenderView& v) const;
     void setMaterial(const Material& m, float time) const;
     void drawNode(const SceneNode& node, float time) const;
+    void drawSky(const DeskScene& scene, const RenderView& v, const SceneNode& sky) const;
 
     Shader m_sceneShader;   // every object: scene.vert + scene.frag
+    Shader m_skyShader;     // the sky behind the window: sky.vert + sky.frag
 
     LightSet m_lights;
     std::vector<const SceneNode*> m_opaque;
+    bool m_skyVisible = false;
 };

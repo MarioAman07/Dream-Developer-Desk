@@ -86,7 +86,10 @@ void App::onKey(int key, int action, int mods)
     case GLFW_KEY_M: m_scene.nextArrangement(); break;
     case GLFW_KEY_L: s.deskLamp = !s.deskLamp; break;
     case GLFW_KEY_F: s.ceilingLight = !s.ceilingLight; break;
+    case GLFW_KEY_G: s.gamingMode = !s.gamingMode; break;
     case GLFW_KEY_R: s.rgbMode = (s.rgbMode + ((mods & GLFW_MOD_SHIFT) ? kRgbModeCount - 1 : 1)) % kRgbModeCount; break;
+    case GLFW_KEY_T: s.autoTime = !s.autoTime; break;
+    case GLFW_KEY_N: s.timeOfDay = (s.timeOfDay > 6.5f && s.timeOfDay < 18.5f) ? 21.5f : 11.0f; break;
     case GLFW_KEY_K: m_scene.spinChair(420.0f); break;
     default: break;
     }
@@ -96,6 +99,17 @@ void App::onResize(int width, int height)
 {
     m_fbWidth = width;
     m_fbHeight = height;
+}
+
+void App::processInput(float dt)
+{
+    auto down = [&](int key) { return glfwGetKey(m_window, key) == GLFW_PRESS; };
+
+    SceneSettings& s = m_scene.settings;
+    if (down(GLFW_KEY_LEFT_BRACKET)) s.timeOfDay -= 2.0f * dt;
+    if (down(GLFW_KEY_RIGHT_BRACKET)) s.timeOfDay += 2.0f * dt;
+    if (s.timeOfDay < 0.0f) s.timeOfDay += 24.0f;
+    if (s.timeOfDay >= 24.0f) s.timeOfDay -= 24.0f;
 }
 
 // ---------------------------------------------------------------- frame
@@ -132,6 +146,7 @@ int App::run()
             glfwSetWindowTitle(m_window, title);
         }
 
+        processInput(dt);
         m_scene.update(dt, static_cast<float>(now));
 
         if (m_fbWidth > 0 && m_fbHeight > 0) {
