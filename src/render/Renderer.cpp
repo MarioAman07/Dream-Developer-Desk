@@ -31,11 +31,16 @@ void Renderer::gather(const SceneNode& node, const Vec3& eye)
 void Renderer::setFrameUniforms(const DeskScene& scene, const RenderView& v) const
 {
     const Shader& s = m_sceneShader;
+    const SceneSettings& st = scene.settings;
     s.use();
     s.setMat4("uView", v.view);
     s.setMat4("uProjection", v.projection);
     s.setVec3("uViewPos", v.eye);
     s.setFloat("uTime", scene.time());
+    s.setInt("uRgbMode", st.rgbMode);
+    s.setFloat("uRgbSpeed", st.rgbSpeed);
+    s.setVec3("uRgbStatic", st.rgbStatic);
+    s.setFloat("uRgbLevel", scene.env().rgb);
     s.setFloat("uScreenBrightness", scene.env().screen);
     s.setInt("uTexture", 0);   // the sampler reads texture unit 0
     s.setVec3("uAmbient", m_lights.ambient);
@@ -72,6 +77,7 @@ void Renderer::setMaterial(const Material& m, float time) const
     s.setFloat("uShininess", m.shininess);
     s.setFloat("uAlpha", m.alpha);
     s.setInt("uEffect", static_cast<int>(m.effect));
+    s.setFloat("uRgbPhase", m.rgbPhase);
     s.setBool("uRotateUV", m.rotateUV);
     // Scrolling UVs (code on the screens). Only the fractional part is sent, so
     // the numbers stay small (the texture repeats anyway).

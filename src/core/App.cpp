@@ -86,6 +86,7 @@ void App::onKey(int key, int action, int mods)
     case GLFW_KEY_M: m_scene.nextArrangement(); break;
     case GLFW_KEY_L: s.deskLamp = !s.deskLamp; break;
     case GLFW_KEY_F: s.ceilingLight = !s.ceilingLight; break;
+    case GLFW_KEY_R: s.rgbMode = (s.rgbMode + ((mods & GLFW_MOD_SHIFT) ? kRgbModeCount - 1 : 1)) % kRgbModeCount; break;
     case GLFW_KEY_K: m_scene.spinChair(420.0f); break;
     default: break;
     }

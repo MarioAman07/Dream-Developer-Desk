@@ -4,6 +4,7 @@
 #include "gfx/Mesh.h"
 #include "gfx/Primitives.h"
 #include "gfx/Texture.h"
+#include "util/Rgb.h"
 
 #include <cmath>
 #include <iostream>
@@ -154,6 +155,8 @@ void DeskScene::collectLights(LightSet& out) const
     out.points.clear();
     out.spots.clear();
 
+    auto rgbAt = [&](float phase) { return rgb::effect(s.rgbMode, phase, m_time, s.rgbSpeed, s.rgbStatic) * e.rgb; };
+
     // Ambient light: daylight through the window + light from the ceiling lamp
     // bounced off the walls.
     Vec3 ambient = Vec3(0.30f, 0.31f, 0.33f);
@@ -175,7 +178,23 @@ void DeskScene::collectLights(LightSet& out) const
 
     // Point 0: ceiling pendant.
     out.points.push_back({m_ceilingBulb->worldPosition() - Vec3(0, 0.05f, 0), {1.0f, 0.94f, 0.86f}, 1.0f * e.ceiling, 7.5f});
-    // Point 1: cold light from the main monitor onto the desk and the chair.
+
+    // Points 1-3: LED strip behind the monitors (same colour formula as the shader).
+    for (float x : {-0.6f, 0.0f, 0.6f}) {
+        Vec3 p(x, 0.80f, -2.44f);
+        out.points.push_back({p, rgbAt(p.x * 0.6f), 0.9f, 2.0f});
+    }
+    // Point 4: under-desk strip glow on the floor.
+    out.points.push_back({{0.0f, 0.62f, -1.65f}, rgbAt(0.15f), 0.8f, 2.0f});
+    // Point 5: keyboard underglow.
+    Vec3 kb = m_keyboard.node()->worldPosition() + Vec3(0.0f, 0.05f, 0.02f);
+    out.points.push_back({kb, rgbAt(kb.x * 0.6f + 0.3f), 0.35f, 0.6f});
+    // Point 6: inside the PC case.
+    if (s.showPC) {
+        Vec3 pc = m_pc->worldPosition() + Vec3(0.0f, 0.28f, 0.2f);
+        out.points.push_back({pc, rgbAt(pc.x * 0.6f), 0.8f, 2.0f});
+    }
+    // Point 7: cold light from the main monitor onto the desk and the chair.
     if (m_monitors.isVisible(0) && s.content[0] != ScreenContent::Off) {
         const SceneNode* scr = m_monitors.screen(0);
         Vec3 p = scr->worldPosition() + scr->worldAxis(2) * 0.45f - Vec3(0.0f, 0.3f, 0.0f);

@@ -1,4 +1,4 @@
-// SceneDesk.cpp - the desk, monitors, keyboard, mouse, mug and the
+// SceneDesk.cpp - the desk, LED strips, monitors, keyboard, mouse, mug and the
 // articulated desk lamp. Everything on the desk is a child of the desk-top node,
 // so moving the desk moves all of it.
 #include "scene/DeskScene.h"
@@ -40,6 +40,13 @@ void DeskScene::buildDesk()
     }
     m_deskTop->addMesh("desk_crossbar", m_cube, metal, {0, -0.3f, -0.3f}, {1.6f, 0.05f, 0.025f});
 
+    // RGB LED strip along the back edge (the glow on the wall comes from 3 point lights).
+    Material strip = makeMat({0.17f, 0.17f, 0.17f});
+    strip.effect = Effect::RgbStrip;
+    m_deskTop->addMesh("led_strip_back", m_cube, strip, {0, 0.004f, -depth * 0.5f + 0.01f}, {width - 0.04f, 0.008f, 0.012f});
+    // Second strip under the front edge, lights the floor and the chair.
+    m_deskTop->addMesh("led_strip_under", m_cube, strip, {0, -thick - 0.004f, depth * 0.5f - 0.03f}, {width - 0.1f, 0.006f, 0.012f});
+
     // Monitors (hierarchies, animated arrangements) and keyboard (all keys in one mesh).
     m_monitors.build(m_deskTop, m_cube, m_quad, m_cylinder, m_sphere);
     m_keyboard.build(m_deskTop, m_cube, {-0.04f, 0.003f, 0.24f});
@@ -60,6 +67,8 @@ void DeskScene::buildDeskItems()
     SceneNode* wheel = mouse->addMesh("mouse_wheel", m_cylinder, makeMat({0.48f, 0.48f, 0.5f}, 0.3f), {0, 0.031f, -0.025f}, {0.018f, 0.008f, 0.018f});
     wheel->rotation.z = 90.0f;
     Material logo = makeMat({0.17f, 0.17f, 0.17f});
+    logo.effect = Effect::RgbStrip;
+    logo.rgbPhase = 0.5f;
     mouse->addMesh("mouse_logo", m_sphere, logo, {0, 0.026f, 0.03f}, {0.016f, 0.008f, 0.016f});
 
     // Coffee mug: body, coffee surface, handle (torus).

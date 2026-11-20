@@ -9,6 +9,7 @@ struct Environment {
     // Animated 0..1 levels (they ease towards their targets)
     float ceiling = 1.0f;
     float lamp = 1.0f;
+    float rgb = 1.0f;
     float screen = 1.0f;
 
     // Instant change (used on startup).

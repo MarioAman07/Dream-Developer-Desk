@@ -9,6 +9,9 @@ inline const char* kScreenContentNames[] = {"Code editor", "Terminal", "Docs (br
 enum class Arrangement : int { Single = 0, Dual, Triple, Portrait, Count };
 inline const char* kArrangementNames[] = {"Single", "Dual", "Triple", "Main + portrait"};
 
+inline const char* kRgbModeNames[] = {"Rainbow wave", "Spectrum cycle", "Breathing", "Static colour", "Off"};
+constexpr int kRgbModeCount = 5;
+
 struct SceneSettings {
     // Lights
     bool ceilingLight = true;
@@ -21,6 +24,12 @@ struct SceneSettings {
     float lampLowerArm = 35.0f;
     float lampUpperArm = 75.0f;
     float lampHead = -125.0f;
+
+    // RGB
+    int rgbMode = 0;
+    float rgbSpeed = 1.0f;
+    Vec3 rgbStatic{0.42f, 0.76f, 1.0f};
+    float rgbBrightness = 1.0f;
 
     // Monitors
     Arrangement arrangement = Arrangement::Triple;

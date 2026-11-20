@@ -9,12 +9,15 @@
 #define MAX_SPOT_LIGHTS 2
 
 // Must match enum class Effect in src/scene/Material.h
+const int FX_RGB    = 1;
 const int FX_SCREEN = 2;
 const int FX_UNLIT  = 5;
+const int FX_KEY    = 6;
 
 in vec3 vWorldPos;
 in vec3 vNormal;
 in vec2 vUV;
+in float vPressed;
 
 out vec4 FragColor;
 
@@ -39,6 +42,7 @@ uniform SpotLight uSpots[MAX_SPOT_LIGHTS];
 uniform int uSpotCount;
 uniform vec3 uAmbient;
 uniform vec3 uViewPos;
+uniform float uTime;
 
 // Material
 uniform vec3 uDiffuse;        // kd (also used as ka)
@@ -48,7 +52,46 @@ uniform float uAlpha;
 uniform bool uUseTexture;
 uniform sampler2D uTexture;
 uniform int uEffect;
+uniform float uRgbPhase;
 uniform float uScreenBrightness;
+
+// RGB lighting (the same values for the keyboard, LED strips and PC fans)
+uniform int   uRgbMode;       // 0 wave, 1 spectrum, 2 breathing, 3 static, 4 off
+uniform float uRgbSpeed;
+uniform vec3  uRgbStatic;
+uniform float uRgbLevel;      // overall brightness, rises in "gaming mode"
+
+// HSV -> RGB (lecture "Introduction", colour models). The hue circle is cut
+// into 6 sectors of 60 degrees. The same function is in src/util/Rgb.h.
+vec3 hsv2rgb(float h, float s, float v)
+{
+    float sector = fract(h) * 6.0;
+    int i = int(sector);
+    float f = sector - float(i);   // position inside the sector
+    float p = v * (1.0 - s);
+    float q = v * (1.0 - s * f);
+    float t = v * (1.0 - s * (1.0 - f));
+    if (i == 0) return vec3(v, t, p);
+    if (i == 1) return vec3(q, v, p);
+    if (i == 2) return vec3(p, v, t);
+    if (i == 3) return vec3(p, q, v);
+    if (i == 4) return vec3(t, p, v);
+    return vec3(v, p, q);
+}
+
+// Colour of an LED. phase = position along the strip, so the colours move along it.
+vec3 rgbEffect(float phase)
+{
+    float t = uTime * uRgbSpeed;
+    if (uRgbMode == 0) return hsv2rgb(t * 0.12 + phase, 1.0, 1.0);   // rainbow wave
+    if (uRgbMode == 1) return hsv2rgb(t * 0.08, 1.0, 1.0);           // whole spectrum
+    if (uRgbMode == 2) {                                            // breathing
+        float b = 0.12 + 0.88 * (0.5 + 0.5 * sin(t * 2.0));
+        return hsv2rgb(t * 0.02, 1.0, b);
+    }
+    if (uRgbMode == 3) return uRgbStatic;                            // static colour
+    return vec3(0.0);                                                // off
+}
 
 // Distance attenuation 1 / (a + b*d + c*d^2) from the lecture, with a = 1.
 // b and c are chosen from the range of the light: at d = range the light is
@@ -85,7 +128,13 @@ void main()
         alpha *= t.a;
     }
 
-    if (uEffect == FX_UNLIT) {
+    if (uEffect == FX_RGB) {
+        emissive += rgbEffect(vWorldPos.x * 0.6 + uRgbPhase) * uRgbLevel * 0.9;
+    } else if (uEffect == FX_KEY) {
+        // Keycap tops glow (legends lit from below), the sides get a little light.
+        float glow = normalize(vNormal).y > 0.5 ? 0.5 : 0.1;
+        emissive += rgbEffect(vUV.x) * uRgbLevel * (1.0 + vPressed * 1.5) * glow;
+    } else if (uEffect == FX_UNLIT) {
         FragColor = vec4(min(kd + emissive, vec3(1.0)), alpha);   // bulbs: no lighting
         return;
     }

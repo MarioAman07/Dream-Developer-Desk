@@ -111,6 +111,7 @@ void DeskScene::buildPC()
     m_pc->addMesh("pc_motherboard", m_cube, makeMat({0.23f, 0.28f, 0.26f}, 0.3f, 32.0f), {0.03f, 0.26f, -D * 0.5f + 0.015f}, {0.3f, 0.32f, 0.01f});
 
     Material rgbMat = makeMat({0.17f, 0.17f, 0.17f});
+    rgbMat.effect = Effect::RgbStrip;
 
     SceneNode* gpu = m_pc->addChild("pc_gpu");
     gpu->position = Vec3(0.02f, 0.15f, 0.0f);
@@ -126,7 +127,8 @@ void DeskScene::buildPC()
         SceneNode* fan = m_pc->addChild("pc_fan" + std::to_string(f));
         fan->position = Vec3(-0.14f + f * 0.14f, 0.38f, -D * 0.5f + 0.03f);
         fan->addMesh("fan_frame", m_cube, frameMat, {0, 0, -0.008f}, {0.125f, 0.125f, 0.012f});
-        fan->addMesh("fan_ring", m_fanRing, rgbMat, {0, 0, 0.0f}, Vec3(1.0f));
+        SceneNode* ring = fan->addMesh("fan_ring", m_fanRing, rgbMat, {0, 0, 0.0f}, Vec3(1.0f));
+        ring->material.rgbPhase = f * 0.1f;
 
         SceneNode* rotor = fan->addChild("fan_rotor");
         rotor->addMesh("fan_hub", m_cylinder, frameMat, {0, 0, 0}, {0.03f, 0.012f, 0.03f})->rotation.x = 90.0f;

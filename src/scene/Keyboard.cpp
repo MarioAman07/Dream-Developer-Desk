@@ -41,6 +41,8 @@ void Keyboard::build(SceneNode* parent, const Mesh* cube, const Vec3& position)
     // Thin RGB light bar along the front edge of the plate.
     Material bar;
     bar.albedo = Vec3(0.17f);
+    bar.effect = Effect::RgbStrip;
+    bar.rgbPhase = 0.3f;
     m_node->addMesh("keyboard_lightbar", cube, bar, {0.0f, 0.004f, depth * 0.5f + 0.0008f}, {width - 0.01f, 0.003f, 0.0016f});
 
     // All keycaps -> one vertex array and one index array.
@@ -69,5 +71,6 @@ void Keyboard::build(SceneNode* parent, const Mesh* cube, const Vec3& position)
     keys.albedo = Vec3(0.24f, 0.24f, 0.26f);
     keys.specular = 0.35f;
     keys.shininess = 40.0f;
+    keys.effect = Effect::KeyCap;
     m_node->addMesh("keycaps", m_keyMesh.get(), keys, Vec3(0.0f), Vec3(1.0f));
 }

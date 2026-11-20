@@ -8,9 +8,11 @@ class Texture;
 // Special shader paths. Must match the FX_* constants in shaders/scene.vert and scene.frag.
 enum class Effect : int {
     None = 0,
+    RgbStrip = 1,    // emissive colour cycles along world X (LED strip, fan rings)
     Screen = 2,      // emissive texture (monitor content)
     Sway = 4,        // vertex animation for plant leaves
     Unlit = 5,       // plain colour, no lighting (bulbs)
+    KeyCap = 6,      // keyboard keycaps (RGB per key + "ghost typing" in the shaders)
 };
 
 struct Material {
@@ -24,4 +26,5 @@ struct Material {
     bool rotateUV = false;         // portrait monitors
 
     Effect effect = Effect::None;
+    float rgbPhase = 0.0f;         // offset for RGB effects so objects differ
 };
