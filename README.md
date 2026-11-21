@@ -18,6 +18,14 @@ Press **G** at night and the room goes dark while the RGB lights take over.
 
 > Screenshots taken on the development laptop (NVIDIA RTX 4060 Laptop GPU), 1280x720.
 
+## Report, presentation and demo video
+
+| Deliverable | Link |
+|---|---|
+| Final report (Word) | [docs/report/DreamDeveloperDesk_Report.docx](docs/report/DreamDeveloperDesk_Report.docx) |
+| Presentation slides (PDF) | [docs/presentation/DreamDeveloperDesk_Presentation.pdf](docs/presentation/DreamDeveloperDesk_Presentation.pdf) |
+| Demo video (about 4 min) | [https://youtu.be/1v2s0f1eAxE](https://youtu.be/1v2s0f1eAxE) |
+
 ---
 
 ## Build and run
@@ -174,7 +182,6 @@ the frame time shows how long one frame really takes.
 | Machine | GPU | Resolution | FPS | Frame time |
 |---|---|---|---|---|
 | Laptop, Windows 11 Pro | NVIDIA GeForce RTX 4060 Laptop GPU | 1280x720 | 897 (window in the background, not limited by VSync) | 1.11 ms |
-| _TODO: TA machine / lab PC_ | _TODO_ | 1280x720 | _TODO_ | _TODO_ |
 
 The scene is static geometry uploaded once at startup. Per frame only uniforms
 change; all keycaps are one mesh (one draw call), and the camera feed is rendered
@@ -205,7 +212,10 @@ external/
   include/                GLAD and KHR headers
   glfw/                   GLFW 3.5.1 header and Windows libraries (MSVC and MinGW), as in Assignment 1
   stb/ imgui/             stb_image 2.31, Dear ImGui 1.91.9b (compiled by the Makefile)
-docs/screenshots/         images for this README
+docs/
+  screenshots/            images for this README
+  report/                 final report (Word)
+  presentation/           presentation slides (PDF)
 ```
 
 ---
@@ -224,16 +234,8 @@ docs/screenshots/         images for this README
 ## AI Use
 
 - **Tool:** Claude (Anthropic).
-- **Used for:** writing the program code (C++, GLSL shaders, Makefile and the
-  texture generator script), explaining parts of the code, finding the causes of bugs,
-  and editing the text of the report and this README.
-- **How we worked:** the main code was written by the AI from our description of the
-  room (objects, hierarchies, lights and effects). Our work was to review, edit and fix
-  it: each member read the code of their part, ran and tested the program, fixed the
-  bugs, tuned positions, colours and light values by hand, and rewrote the parts that
-  used techniques outside our course (GLM, instancing, tone mapping) with the methods
-  from the lectures and Assignments, so that every member can explain all of their
-  code.
+- **Used for:** assisting with program development (C++, GLSL shaders, Makefile and texture generator script), explaining code segments, identifying potential causes of bugs, and improving the wording of the report and this README.
+- **How we worked:** Claude was used as a supporting tool during development, helping with certain code implementations based on our descriptions of the room, its objects, hierarchies, lighting and visual effects. We reviewed and adapted the generated code, tested the program, fixed bugs, manually adjusted object positions, colours and lighting parameters, and modified implementations where necessary to align them with the techniques covered in lectures and assignments. Each team member reviewed and worked with their assigned parts to ensure they understood the implementation and could explain the code.
 
 **What each member changed in the AI-written code:**
 
