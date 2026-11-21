@@ -50,6 +50,9 @@ bool App::init()
     // GLFW calls these functions; they forward the events to this App object.
     glfwSetWindowUserPointer(m_window, this);
     glfwSetKeyCallback(m_window, [](GLFWwindow* w, int k, int, int a, int m) { self(w)->onKey(k, a, m); });
+    glfwSetMouseButtonCallback(m_window, [](GLFWwindow* w, int b, int a, int) { self(w)->onMouseButton(b, a); });
+    glfwSetCursorPosCallback(m_window, [](GLFWwindow* w, double x, double y) { self(w)->onCursor(x, y); });
+    glfwSetScrollCallback(m_window, [](GLFWwindow* w, double, double dy) { self(w)->onScroll(dy); });
     glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* w, int x, int y) { self(w)->onResize(x, y); });
     glfwGetFramebufferSize(m_window, &m_fbWidth, &m_fbHeight);
 
@@ -71,6 +74,22 @@ void App::shutdown()
     m_window = nullptr;
 }
 
+void App::applyCameraView(int index)
+{
+    struct View { Vec3 target; float dist, yaw, pitch; };
+    const View views[] = {
+        {{0.05f, 0.95f, -1.85f}, 2.7f, 34.0f, 20.0f},  // overview
+        {{-0.03f, 0.80f, -1.76f}, 0.62f, 12.0f, 38.0f}, // keyboard close-up
+        {{0.0f, 1.10f, -2.10f}, 1.45f, 0.0f, 6.0f},     // monitors
+        {{1.22f, 0.30f, -2.05f}, 1.1f, 22.0f, 14.0f},   // PC
+        {{-2.4f, 1.45f, -1.2f}, 2.5f, 78.0f, 4.0f},     // window and plant
+        {{0.0f, 1.0f, -0.6f}, 7.4f, 38.0f, 38.0f},      // whole room from outside (walls cut away)
+    };
+    if (index < 0 || index > 5) return;
+    const View& v = views[index];
+    m_camera.focus(v.target, v.dist, v.yaw, v.pitch);
+}
+
 // ---------------------------------------------------------------- input
 
 void App::onKey(int key, int action, int mods)
@@ -80,6 +99,10 @@ void App::onKey(int key, int action, int mods)
 
     switch (key) {
     case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(m_window, GLFW_TRUE); break;
+    case GLFW_KEY_0: applyCameraView(5); break;
+    case GLFW_KEY_5: case GLFW_KEY_6: case GLFW_KEY_7: case GLFW_KEY_8: case GLFW_KEY_9:
+        applyCameraView(key - GLFW_KEY_5);
+        break;
     case GLFW_KEY_1: case GLFW_KEY_2: case GLFW_KEY_3: case GLFW_KEY_4:
         m_scene.applyArrangementPreset(static_cast<Arrangement>(key - GLFW_KEY_1));
         break;
@@ -95,6 +118,34 @@ void App::onKey(int key, int action, int mods)
     }
 }
 
+void App::onMouseButton(int button, int action)
+{
+    bool down = action == GLFW_PRESS;
+    if (button == GLFW_MOUSE_BUTTON_LEFT) m_leftDown = down;
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) m_rightDown = down;
+    glfwGetCursorPos(m_window, &m_lastX, &m_lastY);
+}
+
+void App::onCursor(double x, double y)
+{
+    float dx = static_cast<float>(x - m_lastX);
+    float dy = static_cast<float>(y - m_lastY);
+    m_lastX = x;
+    m_lastY = y;
+
+    const float sensitivity = 0.25f;   // degrees per pixel
+    if (m_leftDown) m_camera.orbit(-dx * sensitivity, dy * sensitivity);
+    if (m_rightDown) {
+        float k = 0.0012f * m_camera.distance;
+        m_camera.pan(-dx * k, dy * k, 0.0f);
+    }
+}
+
+void App::onScroll(double dy)
+{
+    m_camera.zoom(static_cast<float>(dy));
+}
+
 void App::onResize(int width, int height)
 {
     m_fbWidth = width;
@@ -104,6 +155,23 @@ void App::onResize(int width, int height)
 void App::processInput(float dt)
 {
     auto down = [&](int key) { return glfwGetKey(m_window, key) == GLFW_PRESS; };
+
+    // Every movement is multiplied by dt -> the same speed at any frame rate.
+    float speed = (down(GLFW_KEY_LEFT_SHIFT) ? 3.0f : 1.0f) * dt;
+    float right = 0.0f, up = 0.0f, forward = 0.0f;
+    if (down(GLFW_KEY_W)) forward += 1.2f * speed;
+    if (down(GLFW_KEY_S)) forward -= 1.2f * speed;
+    if (down(GLFW_KEY_D)) right += 1.2f * speed;
+    if (down(GLFW_KEY_A)) right -= 1.2f * speed;
+    if (down(GLFW_KEY_E)) up += 1.2f * speed;
+    if (down(GLFW_KEY_Q)) up -= 1.2f * speed;
+    m_camera.pan(right, up, forward);
+
+    float orbitSpeed = 70.0f * speed;   // degrees per second
+    if (down(GLFW_KEY_LEFT)) m_camera.orbit(orbitSpeed, 0.0f);
+    if (down(GLFW_KEY_RIGHT)) m_camera.orbit(-orbitSpeed, 0.0f);
+    if (down(GLFW_KEY_UP)) m_camera.orbit(0.0f, orbitSpeed);
+    if (down(GLFW_KEY_DOWN)) m_camera.orbit(0.0f, -orbitSpeed);
 
     SceneSettings& s = m_scene.settings;
     if (down(GLFW_KEY_LEFT_BRACKET)) s.timeOfDay -= 2.0f * dt;
@@ -121,10 +189,9 @@ void App::renderFrame()
     glClearColor(0.07f, 0.07f, 0.085f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     RenderView main;
-    // Fixed camera: the default overview of the desk.
-    main.eye = Vec3(1.47f, 1.87f, 0.25f);
-    main.view = lookAt(main.eye, Vec3(0.05f, 0.95f, -1.85f), Vec3(0.0f, 1.0f, 0.0f));
-    main.projection = perspective(55.0f, static_cast<float>(m_fbWidth) / std::max(1, m_fbHeight), 0.03f, 60.0f);
+    main.eye = m_camera.position();
+    main.view = m_camera.view();
+    main.projection = m_camera.projection(static_cast<float>(m_fbWidth) / std::max(1, m_fbHeight));
     m_renderer.render(m_scene, main);
 }
 
@@ -147,6 +214,7 @@ int App::run()
         }
 
         processInput(dt);
+        m_camera.update(dt);
         m_scene.update(dt, static_cast<float>(now));
 
         if (m_fbWidth > 0 && m_fbHeight > 0) {
