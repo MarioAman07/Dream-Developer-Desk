@@ -3,8 +3,8 @@
 
 #include "core/Math.h"
 
-enum class ScreenContent : int { Code = 0, Terminal, Docs, Off, Count };
-inline const char* kScreenContentNames[] = {"Code editor", "Terminal", "Docs (browser)", "Off"};
+enum class ScreenContent : int { Code = 0, Terminal, Docs, CameraFeed, Off, Count };
+inline const char* kScreenContentNames[] = {"Code editor", "Terminal", "Docs (browser)", "Security camera", "Off"};
 
 enum class Arrangement : int { Single = 0, Dual, Triple, Portrait, Count };
 inline const char* kArrangementNames[] = {"Single", "Dual", "Triple", "Main + portrait"};
@@ -37,7 +37,7 @@ struct SceneSettings {
 
     // Monitors
     Arrangement arrangement = Arrangement::Triple;
-    ScreenContent content[3] = {ScreenContent::Code, ScreenContent::Docs, ScreenContent::Terminal};
+    ScreenContent content[3] = {ScreenContent::Code, ScreenContent::CameraFeed, ScreenContent::Terminal};
     float screenBrightness = 1.0f;
 
     // Items that can be shown / hidden
@@ -49,6 +49,7 @@ struct SceneSettings {
     bool showShelf = true;
     bool showPoster = true;
     bool showRug = true;
+    bool showSecurityCam = true;
 
     // Colours
     Vec3 deskTint{1.0f};

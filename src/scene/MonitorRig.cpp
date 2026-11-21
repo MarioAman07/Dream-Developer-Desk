@@ -95,6 +95,11 @@ bool MonitorRig::isVisible(int i) const
     return m_monitors[i].pose.scale > 0.02f;
 }
 
+bool MonitorRig::showsFeed(int i, const SceneSettings& s) const
+{
+    return isVisible(i) && s.content[i] == ScreenContent::CameraFeed;
+}
+
 void MonitorRig::update(float dt, const SceneSettings& s, const ScreenTextures& tex)
 {
     for (int i = 0; i < kCount; ++i) {
@@ -117,6 +122,7 @@ void MonitorRig::update(float dt, const SceneSettings& s, const ScreenTextures& 
         Material& mat = m.screen->material;
         mat.rotateUV = m.pose.roll > 45.0f;
         mat.uvScrollSpeed = Vec2(0.0f);
+        mat.rawTexture = 0;
         mat.texture = nullptr;
         mat.albedo = Vec3(0.12f);
         switch (s.content[i]) {
@@ -133,6 +139,10 @@ void MonitorRig::update(float dt, const SceneSettings& s, const ScreenTextures& 
         case ScreenContent::Docs:
             mat.effect = Effect::Screen;
             mat.texture = tex.docs;
+            break;
+        case ScreenContent::CameraFeed:
+            mat.effect = Effect::CameraFeed;
+            mat.rawTexture = tex.feed;
             break;
         default:
             mat.effect = Effect::None;   // switched off: dark glossy glass

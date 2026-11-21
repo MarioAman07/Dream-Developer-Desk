@@ -91,9 +91,10 @@ void Renderer::setMaterial(const Material& m, float time) const
     s.setVec2("uUVOffset", Vec2(offset.x - std::floor(offset.x), offset.y - std::floor(offset.y)));
 
     glActiveTexture(GL_TEXTURE0);
-    if (m.texture) glBindTexture(GL_TEXTURE_2D, m.texture->id());
+    if (m.rawTexture) glBindTexture(GL_TEXTURE_2D, m.rawTexture);
+    else if (m.texture) glBindTexture(GL_TEXTURE_2D, m.texture->id());
     else glBindTexture(GL_TEXTURE_2D, 0);
-    s.setBool("uUseTexture", m.texture != nullptr);
+    s.setBool("uUseTexture", m.texture != nullptr || m.rawTexture != 0);
 }
 
 void Renderer::drawNode(const SceneNode& node, float time) const

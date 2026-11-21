@@ -10,6 +10,8 @@
 namespace {
 constexpr int kWindowWidth = 1280;
 constexpr int kWindowHeight = 720;
+constexpr int kFeedWidth = 640;    // size of the security camera picture
+constexpr int kFeedHeight = 360;
 
 void glfwErrorCallback(int code, const char* description)
 {
@@ -63,6 +65,7 @@ bool App::init()
         return false;
     }
     m_scene.init();
+    m_feed.create(kFeedWidth, kFeedHeight);
     m_gui.init(m_window);
     return true;
 }
@@ -117,6 +120,9 @@ void App::onKey(int key, int action, int mods)
     case GLFW_KEY_R: s.rgbMode = (s.rgbMode + ((mods & GLFW_MOD_SHIFT) ? kRgbModeCount - 1 : 1)) % kRgbModeCount; break;
     case GLFW_KEY_T: s.autoTime = !s.autoTime; break;
     case GLFW_KEY_N: s.timeOfDay = (s.timeOfDay > 6.5f && s.timeOfDay < 18.5f) ? 21.5f : 11.0f; break;
+    case GLFW_KEY_V:
+        s.content[1] = (s.content[1] == ScreenContent::CameraFeed) ? ScreenContent::Terminal : ScreenContent::CameraFeed;
+        break;
     case GLFW_KEY_K: m_scene.spinChair(420.0f); break;
     default: break;
     }
@@ -191,7 +197,23 @@ void App::processInput(float dt)
 
 void App::renderFrame()
 {
-    // Draw the scene into the window.
+    // Pass 1: the security camera view into the framebuffer (only if a monitor shows it).
+    // While this picture is drawn, the monitor that shows it is dark, because a
+    // texture cannot be read and written in the same pass.
+    if (m_scene.feedNeeded()) {
+        m_scene.setFeedTexture(0);
+        m_feed.bind();
+        glClearColor(0.02f, 0.02f, 0.03f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        RenderView feed;
+        feed.eye = m_scene.feedEye();
+        feed.view = m_scene.feedView();
+        feed.projection = perspective(m_scene.feedFovDeg(), static_cast<float>(kFeedWidth) / kFeedHeight, 0.05f, 30.0f);
+        m_renderer.render(m_scene, feed);
+        m_scene.setFeedTexture(m_feed.colorTexture());   // now the monitor shows the picture
+    }
+
+    // Pass 2: the main camera to the window.
     Framebuffer::bindDefault(m_fbWidth, m_fbHeight);
     glClearColor(0.07f, 0.07f, 0.085f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

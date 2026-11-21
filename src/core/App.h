@@ -41,6 +41,9 @@ private:
     Gui m_gui;
     FpsCounter m_fps;
 
+    // Off-screen framebuffer for the security camera picture (render-to-texture).
+    Framebuffer m_feed;
+
     bool m_leftDown = false;
     bool m_rightDown = false;
     double m_lastX = 0.0;

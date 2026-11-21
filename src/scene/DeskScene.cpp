@@ -63,6 +63,7 @@ bool DeskScene::init()
     buildChair();
     buildPlant();
     buildPC();
+    buildSecurityCamera();
 
     applyArrangementPreset(settings.arrangement);
     m_monitors.snapTo(settings.arrangement);
@@ -87,8 +88,8 @@ void DeskScene::applyArrangementPreset(Arrangement a)
     using SC = ScreenContent;
     switch (a) {
     case Arrangement::Single:   settings.content[0] = SC::Code; break;
-    case Arrangement::Dual:     settings.content[0] = SC::Code; settings.content[1] = SC::Terminal; break;
-    case Arrangement::Triple:   settings.content[0] = SC::Code; settings.content[1] = SC::Docs; settings.content[2] = SC::Terminal; break;
+    case Arrangement::Dual:     settings.content[0] = SC::Code; settings.content[1] = SC::CameraFeed; break;
+    case Arrangement::Triple:   settings.content[0] = SC::Code; settings.content[1] = SC::CameraFeed; settings.content[2] = SC::Terminal; break;
     case Arrangement::Portrait: settings.content[0] = SC::Code; settings.content[1] = SC::Docs; break;
     default: break;
     }
@@ -106,7 +107,7 @@ void DeskScene::update(float dt, float time)
     m_env.update(dt, settings);
     applySettingsToNodes(dt);
 
-    ScreenTextures tex{texture("code"), texture("terminal"), texture("docs")};
+    ScreenTextures tex{texture("code"), texture("terminal"), texture("docs"), m_feedTexture};
     m_monitors.update(dt, settings, tex);
 
     m_root->updateWorld();
@@ -125,6 +126,7 @@ void DeskScene::applySettingsToNodes(float dt)
     m_shelf->visible = s.showShelf;
     m_poster->visible = s.showPoster;
     m_rug->visible = s.showRug;
+    m_camMount->visible = s.showSecurityCam;
 
     // Colours
     m_deskTop->children[0]->material.albedo = s.deskTint;
@@ -157,6 +159,38 @@ void DeskScene::applySettingsToNodes(float dt)
     m_chairAngle += m_chairSpin * dt;
     m_chairSpin *= std::exp(-1.5f * dt);
     m_chairSwivel->rotation.y = s.chairYaw + m_chairAngle;
+
+    // Security camera pans left and right, LED blinks.
+    m_camPan->rotation.y = -70.0f + std::sin(m_time * 0.35f) * 16.0f;
+    m_camLed->material.albedo = (std::fmod(m_time, 1.2f) < 0.6f) ? Vec3(1.0f, 0.2f, 0.2f) : Vec3(0.42f, 0.17f, 0.17f);
+}
+
+bool DeskScene::feedNeeded() const
+{
+    if (!settings.showSecurityCam) return false;
+    for (int i = 0; i < MonitorRig::kCount; ++i)
+        if (m_monitors.showsFeed(i, settings)) return true;
+    return false;
+}
+
+Vec3 DeskScene::feedEye() const
+{
+    return m_camTilt->worldPosition() + m_camTilt->worldAxis(2) * 0.16f;
+}
+
+Mat4 DeskScene::feedView() const
+{
+    Vec3 eye = feedEye();
+    return lookAt(eye, eye + m_camTilt->worldAxis(2), Vec3(0.0f, 1.0f, 0.0f));
+}
+
+void DeskScene::setFeedTexture(unsigned int glTexture)
+{
+    m_feedTexture = glTexture;
+    for (int i = 0; i < MonitorRig::kCount; ++i) {
+        Material& m = m_monitors.screen(i)->material;
+        if (m.effect == Effect::CameraFeed) m.rawTexture = glTexture;
+    }
 }
 
 void DeskScene::collectLights(LightSet& out) const

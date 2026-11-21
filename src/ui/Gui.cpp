@@ -82,6 +82,7 @@ GuiActions Gui::draw(DeskScene& scene, const FpsCounter& fps)
         helpLine("R", "next RGB effect");
         helpLine("T / N", "time-lapse / day <-> night");
         helpLine("[ ]", "time of day -/+");
+        helpLine("V", "camera feed on monitor 2");
         helpLine("K", "spin the chair");
         helpLine("H / Esc", "hide this panel / quit");
     }
@@ -127,7 +128,8 @@ GuiActions Gui::draw(DeskScene& scene, const FpsCounter& fps)
         ImGui::Checkbox("Lamp", &s.showLamp);          ImGui::SameLine(230);
         ImGui::Checkbox("Shelf", &s.showShelf);
         ImGui::Checkbox("Poster", &s.showPoster);      ImGui::SameLine(120);
-        ImGui::Checkbox("Rug", &s.showRug);
+        ImGui::Checkbox("Rug", &s.showRug);            ImGui::SameLine(230);
+        ImGui::Checkbox("Sec. cam", &s.showSecurityCam);
         ImGui::ColorEdit3("Desk tint", &s.deskTint.x);
         ImGui::ColorEdit3("Wall colour", &s.wallColor.x);
         ImGui::ColorEdit3("Chair colour", &s.chairColor.x);   // not "Chair": that is the checkbox

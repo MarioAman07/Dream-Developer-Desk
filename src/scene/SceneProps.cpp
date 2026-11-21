@@ -1,4 +1,5 @@
-// SceneProps.cpp - office chair, floor plant and gaming PC with spinning fans.
+// SceneProps.cpp - office chair, floor plant, gaming PC with spinning RGB fans
+// and the security camera whose view is shown on a monitor.
 #include "scene/DeskScene.h"
 
 #include "gfx/Mesh.h"
@@ -139,4 +140,29 @@ void DeskScene::buildPC()
         }
         m_fanRotors.push_back(rotor);
     }
+}
+
+void DeskScene::buildSecurityCamera()
+{
+    // Wall mount -> pan (animated) -> tilt -> body/lens. The feed camera uses the
+    // tilt node's world matrix: render-to-texture from a second point of view.
+    m_camMount = m_root->addChild("security_camera");
+    m_camMount->position = Vec3(2.9f, 2.72f, -2.4f);
+    Material white = makeMat({0.93f, 0.93f, 0.93f}, 0.5f, 64.0f);
+    m_camMount->addMesh("cam_bracket", m_cube, white, {0.04f, 0.0f, -0.04f}, {0.08f, 0.08f, 0.08f});
+
+    m_camPan = m_camMount->addChild("cam_pan");
+    m_camPan->addMesh("cam_neck", m_cylinder, white, {0, -0.03f, 0}, {0.03f, 0.06f, 0.03f});
+
+    m_camTilt = m_camPan->addChild("cam_tilt");
+    m_camTilt->position = Vec3(0.0f, -0.07f, 0.0f);
+    m_camTilt->rotation.x = 28.0f;   // looks down at the desk
+    m_camTilt->addMesh("cam_body", m_cube, white, {0, 0, 0.04f}, {0.07f, 0.065f, 0.15f});
+    SceneNode* lens = m_camTilt->addMesh("cam_lens", m_cylinder, makeMat({0.17f, 0.17f, 0.2f}, 1.0f, 200.0f),
+                                         {0, 0, 0.12f}, {0.045f, 0.02f, 0.045f});
+    lens->rotation.x = 90.0f;
+
+    Material led;
+    led.effect = Effect::Unlit;
+    m_camLed = m_camTilt->addMesh("cam_led", m_sphere, led, {0.022f, 0.024f, 0.116f}, Vec3(0.008f));
 }

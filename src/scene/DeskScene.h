@@ -49,6 +49,13 @@ public:
     const Environment& env() const { return m_env; }
     float time() const { return m_time; }
 
+    // Security camera -> render-to-texture feed
+    bool feedNeeded() const;
+    Vec3 feedEye() const;
+    Mat4 feedView() const;
+    float feedFovDeg() const { return 72.0f; }
+    void setFeedTexture(unsigned int glTexture);
+
     SceneSettings settings;
 
 private:
@@ -65,6 +72,7 @@ private:
     void buildChair();
     void buildPlant();
     void buildPC();
+    void buildSecurityCamera();
 
     void applySettingsToNodes(float dt);
     const Mesh* makeBox(const Vec3& size, float uvPerMetre);
@@ -107,11 +115,16 @@ private:
     SceneNode* m_shelf = nullptr;
     SceneNode* m_poster = nullptr;
     SceneNode* m_rug = nullptr;
+    SceneNode* m_camMount = nullptr;
+    SceneNode* m_camPan = nullptr;
+    SceneNode* m_camTilt = nullptr;
+    SceneNode* m_camLed = nullptr;
     std::vector<SceneNode*> m_fanRotors;
     std::vector<SceneNode*> m_walls;
     std::vector<SceneNode*> m_chairColored;
     std::vector<SceneNode*> m_chairAccent;
 
+    unsigned int m_feedTexture = 0;
     float m_time = 0.0f;
     float m_fanAngle = 0.0f;
     float m_chairAngle = 0.0f;

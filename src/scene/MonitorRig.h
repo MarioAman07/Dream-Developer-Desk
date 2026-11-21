@@ -23,6 +23,7 @@ struct ScreenTextures {
     const Texture* code = nullptr;
     const Texture* terminal = nullptr;
     const Texture* docs = nullptr;
+    unsigned int feed = 0;   // GL texture of the security camera framebuffer
 };
 
 class MonitorRig {
@@ -34,6 +35,7 @@ public:
     void update(float dt, const SceneSettings& s, const ScreenTextures& tex);
 
     bool isVisible(int i) const;
+    bool showsFeed(int i, const SceneSettings& s) const;
     SceneNode* screen(int i) const { return m_monitors[i].screen; }
 
 private:

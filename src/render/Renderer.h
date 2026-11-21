@@ -1,4 +1,6 @@
-// Renderer.h - draws a DeskScene from one point of view.
+// Renderer.h - draws a DeskScene from one point of view. Used twice per frame
+// when the security camera feed is visible: once into the framebuffer, once to
+// the window.
 #pragma once
 
 #include "gfx/Shader.h"

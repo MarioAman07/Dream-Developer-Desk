@@ -11,6 +11,7 @@
 // Must match enum class Effect in src/scene/Material.h
 const int FX_RGB    = 1;
 const int FX_SCREEN = 2;
+const int FX_FEED   = 3;
 const int FX_UNLIT  = 5;
 const int FX_KEY    = 6;
 
@@ -132,6 +133,15 @@ vec3 phong(vec3 N, vec3 V, vec3 L, vec3 light, vec3 kd)
     return light * (kd * NdotL + vec3(uSpecular * spec));
 }
 
+// Security camera picture with washed-out colours: 35 % of the grey value
+// (brightness of the colour, weights of the eye for R, G and B) is mixed in.
+vec3 cameraFeed(vec2 uv)
+{
+    vec3 c = texture(uTexture, uv).rgb;
+    float gray = dot(c, vec3(0.299, 0.587, 0.114));
+    return mix(c, vec3(gray), 0.35);
+}
+
 void main()
 {
     vec3 kd = uDiffuse;
@@ -140,6 +150,10 @@ void main()
 
     if (uEffect == FX_SCREEN) {
         emissive += texture(uTexture, vUV).rgb * uScreenBrightness;
+        kd = vec3(0.01);
+    } else if (uEffect == FX_FEED) {
+        // no texture while the camera picture itself is being drawn -> dark screen
+        if (uUseTexture) emissive += cameraFeed(vUV) * uScreenBrightness;
         kd = vec3(0.01);
     } else if (uUseTexture) {
         vec4 t = texture(uTexture, vUV);
