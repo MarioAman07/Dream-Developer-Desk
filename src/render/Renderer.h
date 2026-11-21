@@ -1,6 +1,8 @@
 // Renderer.h - draws a DeskScene from one point of view. Used twice per frame
 // when the security camera feed is visible: once into the framebuffer, once to
 // the window.
+// Opaque objects are drawn first; transparent ones (glass) after them, sorted
+// back to front and without depth writes (lecture "Pixels and Buffers", blending).
 #pragma once
 
 #include "gfx/Shader.h"
@@ -36,5 +38,6 @@ private:
 
     LightSet m_lights;
     std::vector<const SceneNode*> m_opaque;
+    std::vector<const SceneNode*> m_transparent;
     bool m_skyVisible = false;
 };

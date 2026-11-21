@@ -140,6 +140,12 @@ void DeskScene::buildPC()
         }
         m_fanRotors.push_back(rotor);
     }
+
+    // Tempered glass side panel (transparent pass).
+    Material glass = makeMat({0.58f, 0.6f, 0.62f}, 1.5f, 256.0f);
+    glass.alpha = 0.18f;
+    // 2 mm in front of the case, not in the same plane as its front edges (no z-fighting).
+    m_pc->addMesh("pc_glass", m_quad, glass, {0, H * 0.5f, D * 0.5f + 0.002f}, {W - 0.01f, H - 0.01f, 1.0f});
 }
 
 void DeskScene::buildSecurityCamera()

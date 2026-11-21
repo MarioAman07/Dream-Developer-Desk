@@ -15,7 +15,7 @@ bool Renderer::init()
     return ok;
 }
 
-// Walks the scene tree and collects the visible nodes with a mesh.
+// Walks the scene tree and sorts the nodes with a mesh into opaque and transparent.
 void Renderer::gather(const SceneNode& node, const Vec3& eye, const SceneNode* sky)
 {
     if (!node.visible) return;
@@ -26,7 +26,8 @@ void Renderer::gather(const SceneNode& node, const Vec3& eye, const SceneNode* s
     if (&node == sky) {
         m_skyVisible = DeskScene::isInsideRoom(eye);   // from outside the room the sky quad would float in the void
     } else if (node.mesh) {
-        m_opaque.push_back(&node);
+        if (node.material.alpha < 0.999f) m_transparent.push_back(&node);
+        else m_opaque.push_back(&node);
     }
     for (const auto& c : node.children) gather(*c, eye, sky);
 }
@@ -130,6 +131,7 @@ void Renderer::render(const DeskScene& scene, const RenderView& v)
     scene.collectLights(m_lights);
 
     m_opaque.clear();
+    m_transparent.clear();
     m_skyVisible = false;
     gather(scene.root(), v.eye, scene.skyNode());
 
@@ -145,4 +147,21 @@ void Renderer::render(const DeskScene& scene, const RenderView& v)
 
     // 2) Sky behind the window
     if (m_skyVisible) drawSky(scene, v, *scene.skyNode());
+
+    // 3) Transparent objects: sorted back to front (the farthest first), drawn
+    //    with blending and a read-only depth buffer.
+    if (!m_transparent.empty()) {
+        std::sort(m_transparent.begin(), m_transparent.end(), [&](const SceneNode* a, const SceneNode* b) {
+            return length(a->worldPosition() - v.eye) > length(b->worldPosition() - v.eye);
+        });
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(GL_FALSE);
+        glDisable(GL_CULL_FACE);
+        setFrameUniforms(scene, v);
+        for (const SceneNode* n : m_transparent) drawNode(*n, scene.time());
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
+        glEnable(GL_CULL_FACE);
+    }
 }

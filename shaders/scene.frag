@@ -173,7 +173,7 @@ void main()
     }
 
     vec3 N = normalize(vNormal);
-    if (!gl_FrontFacing) N = -N;   // a surface seen from the back
+    if (!gl_FrontFacing) N = -N;   // glass is seen from both sides
     vec3 V = normalize(uViewPos - vWorldPos);
 
     vec3 color = uAmbient * kd;    // ambient part (ka = kd)

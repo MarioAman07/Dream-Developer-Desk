@@ -90,6 +90,12 @@ void DeskScene::buildWindow(SceneNode* wall)
     win->addMesh("frame_mid", m_cube, frame, {0, 0, 0}, {0.1f, h, 0.04f});
     win->addMesh("sill", m_cube, frame, {0.1f, -h * 0.5f - 0.02f, 0}, {0.26f, 0.03f, w + 0.2f});
 
+    // Glass: transparent, very shiny (drawn in the transparent pass).
+    Material glass = makeMat({0.76f, 0.82f, 0.88f}, 1.2f, 256.0f);
+    glass.alpha = 0.12f;
+    SceneNode* pane = win->addMesh("glass", m_quad, glass, {-0.02f, 0, 0}, {w, h, 1.0f});
+    pane->rotation.y = 90.0f;
+
     // Roller blind: the roller plus a sheet whose length is animated.
     Material roller = makeMat({0.93f, 0.93f, 0.92f}, 0.3f, 32.0f);
     SceneNode* rollerNode = win->addMesh("blind_roller", m_cylinder, roller, {0.12f, h * 0.5f + 0.08f, 0}, {0.07f, w + 0.1f, 0.07f});
