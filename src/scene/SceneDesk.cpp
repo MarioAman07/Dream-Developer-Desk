@@ -26,6 +26,7 @@ void DeskScene::buildDesk()
 
     Material wood = makeMat(settings.deskTint, 0.35f, 48.0f);
     wood.texture = texture("desk_wood");
+    // NOTE: must stay children[0] (its colour is set from the UI).
     m_deskTop->addMesh("desk_board", makeBox({width, thick, depth}, 1.0f), wood, {0, -thick * 0.5f, 0}, Vec3(1.0f));
 
     // Black metal frame: two T-shaped legs and a cross bar.

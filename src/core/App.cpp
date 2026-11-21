@@ -47,7 +47,7 @@ bool App::init()
     glfwSwapInterval(1);   // VSync
     std::cout << "[GL] " << glGetString(GL_VERSION) << " | " << glGetString(GL_RENDERER) << "\n";
 
-    // GLFW calls these functions; they forward the events to this App object.
+    // Our callbacks first; ImGui chains to them when it installs its own.
     glfwSetWindowUserPointer(m_window, this);
     glfwSetKeyCallback(m_window, [](GLFWwindow* w, int k, int, int a, int m) { self(w)->onKey(k, a, m); });
     glfwSetMouseButtonCallback(m_window, [](GLFWwindow* w, int b, int a, int) { self(w)->onMouseButton(b, a); });
@@ -63,12 +63,14 @@ bool App::init()
         return false;
     }
     m_scene.init();
+    m_gui.init(m_window);
     return true;
 }
 
 void App::shutdown()
 {
     if (!m_window) return;
+    m_gui.shutdown();
     glfwDestroyWindow(m_window);
     glfwTerminate();
     m_window = nullptr;
@@ -95,10 +97,12 @@ void App::applyCameraView(int index)
 void App::onKey(int key, int action, int mods)
 {
     if (action != GLFW_PRESS) return;
+    if (m_gui.wantsKeyboard()) return;
     SceneSettings& s = m_scene.settings;
 
     switch (key) {
     case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(m_window, GLFW_TRUE); break;
+    case GLFW_KEY_H: m_gui.visible = !m_gui.visible; break;
     case GLFW_KEY_0: applyCameraView(5); break;
     case GLFW_KEY_5: case GLFW_KEY_6: case GLFW_KEY_7: case GLFW_KEY_8: case GLFW_KEY_9:
         applyCameraView(key - GLFW_KEY_5);
@@ -121,6 +125,7 @@ void App::onKey(int key, int action, int mods)
 void App::onMouseButton(int button, int action)
 {
     bool down = action == GLFW_PRESS;
+    if (down && m_gui.wantsMouse()) return;   // clicks on the panel do not move the camera
     if (button == GLFW_MOUSE_BUTTON_LEFT) m_leftDown = down;
     if (button == GLFW_MOUSE_BUTTON_RIGHT) m_rightDown = down;
     glfwGetCursorPos(m_window, &m_lastX, &m_lastY);
@@ -143,6 +148,7 @@ void App::onCursor(double x, double y)
 
 void App::onScroll(double dy)
 {
+    if (m_gui.wantsMouse()) return;
     m_camera.zoom(static_cast<float>(dy));
 }
 
@@ -154,6 +160,7 @@ void App::onResize(int width, int height)
 
 void App::processInput(float dt)
 {
+    if (m_gui.wantsKeyboard()) return;
     auto down = [&](int key) { return glfwGetKey(m_window, key) == GLFW_PRESS; };
 
     // Every movement is multiplied by dt -> the same speed at any frame rate.
@@ -219,6 +226,12 @@ int App::run()
 
         if (m_fbWidth > 0 && m_fbHeight > 0) {
             renderFrame();
+
+            m_gui.beginFrame();
+            GuiActions a = m_gui.draw(m_scene, m_fps);
+            m_gui.endFrame();
+            if (a.resetCamera) m_camera.reset();
+            if (a.cameraView >= 0) applyCameraView(a.cameraView);
         }
         glfwSwapBuffers(m_window);
     }

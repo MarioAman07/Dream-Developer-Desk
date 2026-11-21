@@ -8,18 +8,21 @@
 
 PROGRAM := DreamDesk
 
-INCLUDES  := -Isrc -Iexternal/include -Iexternal/stb
+INCLUDES  := -Isrc -Iexternal/include -Iexternal/stb -Iexternal/imgui -Iexternal/imgui/backends
 DEFINES   := -D_CRT_SECURE_NO_WARNINGS
 GLAD_SRC  := external/glad/glad.c
 GLFW_DIR  := external/glfw
 OBJDIR    := obj
 
-# Our code: every .cpp in src/ and its subfolders.
+# Our code: every .cpp in src/ and its subfolders. Dear ImGui is compiled from source.
 SRC_DIRS  := src src/core src/gfx src/render src/scene src/ui src/util
 APP_SRC   := $(foreach d,$(SRC_DIRS),$(wildcard $(d)/*.cpp))
 HEADERS   := $(foreach d,$(SRC_DIRS),$(wildcard $(d)/*.h))
+IMGUI_SRC := external/imgui/imgui.cpp external/imgui/imgui_draw.cpp \
+             external/imgui/imgui_tables.cpp external/imgui/imgui_widgets.cpp \
+             external/imgui/backends/imgui_impl_glfw.cpp external/imgui/backends/imgui_impl_opengl3.cpp
 
-vpath %.cpp $(SRC_DIRS)
+vpath %.cpp $(SRC_DIRS) external/imgui external/imgui/backends
 vpath %.c   external/glad
 
 # ---------------------------------------------------------------------------
@@ -107,8 +110,9 @@ endif
 
 TARGET    := $(PROGRAM)$(EXE)
 APP_OBJ   := $(addprefix $(OBJDIR)/,$(notdir $(APP_SRC:.cpp=.$(OBJ))))
+IMGUI_OBJ := $(addprefix $(OBJDIR)/,$(notdir $(IMGUI_SRC:.cpp=.$(OBJ))))
 GLAD_OBJ  := $(OBJDIR)/glad.$(OBJ)
-ALL_OBJ   := $(APP_OBJ) $(GLAD_OBJ)
+ALL_OBJ   := $(APP_OBJ) $(IMGUI_OBJ) $(GLAD_OBJ)
 
 # ---------------------------------------------------------------------------
 # Targets

@@ -6,6 +6,7 @@
 #include "render/Renderer.h"
 #include "scene/Camera.h"
 #include "scene/DeskScene.h"
+#include "ui/Gui.h"
 
 struct GLFWwindow;
 
@@ -37,6 +38,7 @@ private:
     DeskScene m_scene;
     Renderer m_renderer;
     Camera m_camera;
+    Gui m_gui;
     FpsCounter m_fps;
 
     bool m_leftDown = false;

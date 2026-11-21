@@ -116,7 +116,7 @@ void DeskScene::applySettingsToNodes(float dt)
 {
     const SceneSettings& s = settings;
 
-    // Item visibility
+    // Item visibility (ImGui "choose items")
     m_plant->visible = s.showPlant;
     m_mug->visible = s.showMug;
     m_pc->visible = s.showPC;
@@ -125,6 +125,12 @@ void DeskScene::applySettingsToNodes(float dt)
     m_shelf->visible = s.showShelf;
     m_poster->visible = s.showPoster;
     m_rug->visible = s.showRug;
+
+    // Colours
+    m_deskTop->children[0]->material.albedo = s.deskTint;
+    for (SceneNode* w : m_walls) w->material.albedo = s.wallColor;
+    for (SceneNode* n : m_chairColored) n->material.albedo = s.chairColor;
+    for (SceneNode* n : m_chairAccent) n->material.albedo = s.chairAccent;
 
     // Desk lamp hierarchy: each joint only rotates itself, children follow.
     m_lampYaw->rotation.y = s.lampYaw;

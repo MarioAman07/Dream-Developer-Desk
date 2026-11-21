@@ -1,4 +1,4 @@
-// Settings.h - parameters of the scene that can be changed while the program runs.
+// Settings.h - everything the user can change with keys or the ImGui panel.
 #pragma once
 
 #include "core/Math.h"
