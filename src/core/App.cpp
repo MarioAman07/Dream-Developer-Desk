@@ -17,6 +17,19 @@ void glfwErrorCallback(int code, const char* description)
 {
     std::cerr << "[GLFW] Error " << code << ": " << description << "\n";
 }
+
+void printControls()
+{
+    std::cout << "Controls:\n"
+                 "  left mouse drag   orbit the camera       right mouse drag  pan\n"
+                 "  mouse wheel       zoom                   W A S D / Q E     move the camera target\n"
+                 "  arrow keys        orbit with the keys    5 6 7 8 9 0       camera views\n"
+                 "  1 2 3 4 / M       monitor arrangement    V                 camera feed on monitor 2\n"
+                 "  L / F             desk lamp / ceiling    G                 gaming mode (lights out)\n"
+                 "  R                 next RGB effect        T / N             time-lapse / day <-> night\n"
+                 "  [ ]               time of day -/+        K                 spin the chair\n"
+                 "  H                 hide / show the panel  Esc               quit\n";
+}
 } // namespace
 
 App::~App() { shutdown(); }
@@ -67,6 +80,7 @@ bool App::init()
     m_scene.init();
     m_feed.create(kFeedWidth, kFeedHeight);
     m_gui.init(m_window);
+    printControls();
     return true;
 }
 
